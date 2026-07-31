@@ -1,0 +1,37 @@
+<div class="tc-page">
+  <div class="tc-page-header"><h1>Hola, {{ userName }}</h1></div>
+
+  <div *ngIf="loading" class="tc-loading">
+    <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="kpi-grid">
+      <mat-card class="tc-card kpi">
+        <div class="value">{{ vehicleCount }}</div><div class="label">Mis vehículos</div>
+      </mat-card>
+      <mat-card class="tc-card kpi">
+        <div class="value">{{ quotationCount }}</div><div class="label">Mis cotizaciones</div>
+      </mat-card>
+      <mat-card class="tc-card kpi">
+        <div class="value">{{ serviceCount }}</div><div class="label">Mis servicios</div>
+      </mat-card>
+    </div>
+
+    <mat-card class="tc-card">
+      <h2 class="section">Estado actual de mis vehículos en el taller</h2>
+      <div *ngIf="!activeServices.length" class="tc-empty">
+        <mat-icon>directions_car</mat-icon>
+        <p>No tienes vehículos actualmente en el taller.</p>
+      </div>
+      <a *ngFor="let a of activeServices" class="status-item"
+         [routerLink]="['/portal/services', a.service.id]" style="text-decoration:none; color:inherit;">
+        <div>
+          <div class="s-title">{{ a.vehicle?.brand }} {{ a.vehicle?.model }} · {{ a.vehicle?.plate }}</div>
+          <div class="s-sub">Orden {{ a.service.number }} · Ingreso {{ a.service.entryDate | date:'dd/MM/yyyy' }}</div>
+        </div>
+        <span class="tc-chip" [ngClass]="sChip[a.service.status]">{{ sLabel[a.service.status] }}</span>
+      </a>
+    </mat-card>
+  </ng-container>
+</div>

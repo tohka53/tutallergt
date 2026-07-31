@@ -1,0 +1,27 @@
+<h2 mat-dialog-title>Tarjeta de circulación</h2>
+<mat-dialog-content>
+  <div class="viewer-toolbar">
+    <span class="name">{{ doc.fileName }}</span>
+    <ng-container *ngIf="!isPdf && !loading && !error">
+      <button mat-icon-button (click)="zoomOut()" matTooltip="Alejar"><mat-icon>zoom_out</mat-icon></button>
+      <button mat-icon-button (click)="resetZoom()" matTooltip="Restablecer"><mat-icon>center_focus_strong</mat-icon></button>
+      <button mat-icon-button (click)="zoomIn()" matTooltip="Acercar"><mat-icon>zoom_in</mat-icon></button>
+    </ng-container>
+    <button mat-raised-button class="tc-btn-secondary" (click)="download()" [disabled]="loading || error">
+      <mat-icon>download</mat-icon> Descargar
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="tc-loading">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+  </div>
+  <p *ngIf="error" class="tc-muted">{{ error }}</p>
+
+  <div class="viewer-body" *ngIf="!loading && !error">
+    <img *ngIf="!isPdf" [src]="safeUrl" [style.transform]="'scale(' + zoom + ')'" alt="Tarjeta de circulación" />
+    <iframe *ngIf="isPdf" [src]="safeUrl" title="Tarjeta de circulación (PDF)"></iframe>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

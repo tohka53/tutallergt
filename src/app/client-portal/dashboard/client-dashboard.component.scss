@@ -1,0 +1,10 @@
+.kpi-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); margin-bottom: 20px; }
+@media (max-width: 700px) { .kpi-grid { grid-template-columns: 1fr; } }
+.kpi { text-align: center; }
+.kpi .value { font-size: 30px; font-weight: 800; color: var(--tc-blue); }
+.kpi .label { color: var(--tc-muted); }
+.status-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--tc-border); }
+.status-item:last-child { border-bottom: none; }
+.status-item .s-title { font-weight: 600; }
+.status-item .s-sub { font-size: 12px; color: var(--tc-muted); }
+h2.section { font-size: 16px; margin: 0 0 12px; }

@@ -1,0 +1,48 @@
+<mat-sidenav-container class="tc-shell">
+  <mat-sidenav mode="side" opened class="tc-sidenav" [class.collapsed]="collapsed" [disableClose]="true">
+    <div class="tc-brand">
+      <img *ngIf="settings.current.logoDataUrl" [src]="settings.current.logoDataUrl" alt="logo" />
+      <span *ngIf="!settings.current.logoDataUrl" class="logo-fallback">TC</span>
+      <span class="name" *ngIf="!collapsed">{{ settings.current.name }}</span>
+    </div>
+    <nav class="tc-nav">
+      <a *ngFor="let item of nav" [routerLink]="item.link" routerLinkActive="active"
+         [matTooltip]="collapsed ? item.label : ''" matTooltipPosition="right">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span *ngIf="!collapsed">{{ item.label }}</span>
+      </a>
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="tc-header" style="height: 64px;">
+      <button mat-icon-button (click)="toggle()" aria-label="Colapsar menú">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="title">Portal del cliente</span>
+      <span class="tc-demo-badge" style="margin-left: 10px;">MODO DEMOSTRACIÓN</span>
+      <span class="tc-spacer"></span>
+
+      <div class="tc-user" [matMenuTriggerFor]="userMenu" tabindex="0">
+        <mat-icon color="primary">account_circle</mat-icon>
+        <div>
+          <div class="u-name">{{ user?.displayName }}</div>
+          <div class="u-role">Cliente</div>
+        </div>
+        <mat-icon>arrow_drop_down</mat-icon>
+      </div>
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item routerLink="/portal/profile">
+          <mat-icon>person</mat-icon><span>Mi perfil</span>
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon><span>Cerrar sesión</span>
+        </button>
+      </mat-menu>
+    </mat-toolbar>
+
+    <div class="tc-content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

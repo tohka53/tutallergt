@@ -1,0 +1,131 @@
+<div class="tc-page">
+  <div class="tc-page-header">
+    <h1>{{ title }}</h1>
+    <a mat-button routerLink="/app/services"><mat-icon>arrow_back</mat-icon> Volver</a>
+  </div>
+
+  <div *ngIf="loading" class="tc-loading">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+  </div>
+
+  <form *ngIf="!loading" [formGroup]="form" novalidate>
+    <mat-card class="tc-card" style="margin-bottom:16px;">
+      <h2 style="margin:0 0 12px; font-size:16px;">Datos del servicio</h2>
+      <div class="tc-form-grid">
+        <mat-form-field>
+          <mat-label>Cliente</mat-label>
+          <mat-select formControlName="clientId">
+            <mat-option *ngFor="let c of clientList" [value]="c.id">{{ c.firstName }} {{ c.lastName }}</mat-option>
+          </mat-select>
+          <mat-error>Requerido.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Vehículo</mat-label>
+          <mat-select formControlName="vehicleId">
+            <mat-option *ngFor="let v of vehicleList" [value]="v.id">{{ v.brand }} {{ v.model }} — {{ v.plate }}</mat-option>
+          </mat-select>
+          <mat-error>Requerido.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Fecha de ingreso</mat-label>
+          <input matInput [matDatepicker]="d1" formControlName="entryDate" />
+          <mat-datepicker-toggle matSuffix [for]="d1"></mat-datepicker-toggle>
+          <mat-datepicker #d1></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Entrega estimada</mat-label>
+          <input matInput [matDatepicker]="d2" formControlName="estimatedDelivery" />
+          <mat-datepicker-toggle matSuffix [for]="d2"></mat-datepicker-toggle>
+          <mat-datepicker #d2></mat-datepicker>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Kilometraje de ingreso</mat-label>
+          <input matInput type="number" formControlName="entryMileage" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Nivel de combustible</mat-label>
+          <input matInput formControlName="fuelLevel" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Mecánico responsable</mat-label>
+          <input matInput formControlName="mechanicName" />
+          <mat-error>Requerido.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Estado</mat-label>
+          <mat-select formControlName="status">
+            <mat-option *ngFor="let s of statuses" [value]="s">{{ statusLabels[s] }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Motivo de ingreso</mat-label>
+          <input matInput formControlName="reason" />
+          <mat-error>Requerido.</mat-error>
+        </mat-form-field>
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Diagnóstico</mat-label>
+          <textarea matInput formControlName="diagnosis" rows="2"></textarea>
+        </mat-form-field>
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Trabajos solicitados</mat-label>
+          <textarea matInput formControlName="requestedWork" rows="2"></textarea>
+        </mat-form-field>
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Trabajos realizados</mat-label>
+          <textarea matInput formControlName="performedWork" rows="2"></textarea>
+        </mat-form-field>
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Observaciones internas (no visibles al cliente)</mat-label>
+          <textarea matInput formControlName="internalNotes" rows="2"></textarea>
+        </mat-form-field>
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Observaciones visibles para el cliente</mat-label>
+          <textarea matInput formControlName="clientVisibleNotes" rows="2"></textarea>
+        </mat-form-field>
+      </div>
+    </mat-card>
+
+    <mat-card class="tc-card" style="margin-bottom:16px;">
+      <h2 style="margin:0 0 12px; font-size:16px;">Repuestos y mano de obra</h2>
+      <mat-form-field class="tc-full">
+        <mat-label>Buscar en el catálogo</mat-label>
+        <input matInput #searchBox (input)="onSearch(searchBox.value)" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      <div class="results" *ngIf="searchResults.length">
+        <div class="result-item" *ngFor="let r of searchResults" (click)="addFromCatalog(r); searchBox.value=''">
+          <span>{{ r.name }} <span class="tc-muted">({{ r.code }})</span></span>
+          <strong>{{ r.suggestedPrice | gtq }}</strong>
+        </div>
+      </div>
+
+      <div formArrayName="items" style="margin-top:12px;">
+        <div class="item-row" *ngFor="let it of items.controls; let i = index" [formGroupName]="i">
+          <mat-form-field>
+            <mat-label>Tipo</mat-label>
+            <mat-select formControlName="type">
+              <mat-option *ngFor="let t of itemTypes" [value]="t.value">{{ t.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field><mat-label>Descripción</mat-label><input matInput formControlName="name" /></mat-form-field>
+          <mat-form-field><mat-label>Cant.</mat-label><input matInput type="number" formControlName="quantity" /></mat-form-field>
+          <mat-form-field><mat-label>P. unit.</mat-label><input matInput type="number" formControlName="unitPrice" /></mat-form-field>
+          <mat-form-field><mat-label>Desc.</mat-label><input matInput type="number" formControlName="discount" /></mat-form-field>
+          <div class="item-sub">{{ lineSubtotal(it) | gtq }}</div>
+          <button mat-icon-button color="warn" type="button" (click)="removeItem(i)"><mat-icon>delete</mat-icon></button>
+        </div>
+      </div>
+      <button mat-stroked-button type="button" (click)="addManualItem()" style="margin-top:8px;">
+        <mat-icon>add</mat-icon> Agregar artículo
+      </button>
+      <div class="conv-total">Total: {{ total | gtq }}</div>
+    </mat-card>
+
+    <div style="display:flex; justify-content:flex-end; gap:10px; padding-bottom:24px;">
+      <button mat-button type="button" (click)="cancel()">Cancelar</button>
+      <button mat-raised-button class="tc-btn-primary" type="button" (click)="save()" [disabled]="saving">
+        <mat-icon>save</mat-icon> {{ saving ? 'Guardando...' : 'Guardar servicio' }}
+      </button>
+    </div>
+  </form>
+</div>

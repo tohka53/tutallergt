@@ -1,0 +1,135 @@
+<div class="tc-page">
+  <div class="tc-page-header">
+    <h1>{{ title }}</h1>
+    <a mat-button [routerLink]="[base, 'vehicles']"><mat-icon>arrow_back</mat-icon> Volver</a>
+  </div>
+
+  <div *ngIf="loading" class="tc-loading">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+  </div>
+
+  <mat-card class="tc-card" *ngIf="!loading" style="max-width:900px;">
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="tc-form-grid">
+        <mat-form-field *ngIf="isMechanic" class="tc-col-span-2">
+          <mat-label>Propietario</mat-label>
+          <mat-select formControlName="ownerId">
+            <mat-option *ngFor="let c of clientList" [value]="c.id">
+              {{ c.firstName }} {{ c.lastName }} — {{ c.taxId }}
+            </mat-option>
+          </mat-select>
+          <mat-error>Selecciona un propietario.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Placa</mat-label>
+          <input matInput formControlName="plate" style="text-transform:uppercase;" />
+          <mat-error>La placa es obligatoria.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>VIN / No. de chasis</mat-label>
+          <input matInput formControlName="vin" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Marca</mat-label>
+          <mat-select formControlName="brandSelect" (selectionChange)="onBrandChange()">
+            <mat-option *ngFor="let b of brands" [value]="b.id">{{ b.name }}</mat-option>
+          </mat-select>
+          <mat-error>La marca es obligatoria.</mat-error>
+        </mat-form-field>
+        <mat-form-field *ngIf="isOtherBrand">
+          <mat-label>Escribe la marca</mat-label>
+          <input matInput formControlName="customBrand" />
+        </mat-form-field>
+
+        <mat-form-field *ngIf="!isOtherBrand">
+          <mat-label>Modelo / Línea</mat-label>
+          <mat-select formControlName="modelSelect">
+            <mat-option *ngFor="let m of models" [value]="m.id">{{ m.name }}</mat-option>
+            <mat-option value="other-model">Otro modelo</mat-option>
+          </mat-select>
+          <mat-error>El modelo es obligatorio.</mat-error>
+        </mat-form-field>
+        <mat-form-field *ngIf="isOtherModel">
+          <mat-label>Escribe el modelo / línea</mat-label>
+          <input matInput formControlName="customModel" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Año</mat-label>
+          <input matInput type="number" formControlName="year" />
+          <mat-error *ngIf="form.controls.year.hasError('required')">Requerido.</mat-error>
+          <mat-error *ngIf="form.controls.year.hasError('min') || form.controls.year.hasError('max')">
+            Año entre 1950 y {{ currentYear + 1 }}.
+          </mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Color</mat-label>
+          <input matInput formControlName="color" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Tipo de vehículo</mat-label>
+          <mat-select formControlName="type">
+            <mat-option *ngFor="let t of vehicleTypes" [value]="t">{{ t }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Cilindraje</mat-label>
+          <input matInput formControlName="engineSize" placeholder="2.4L" />
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Combustible</mat-label>
+          <mat-select formControlName="fuelType">
+            <mat-option *ngFor="let f of fuelTypes" [value]="f">{{ f }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Transmisión</mat-label>
+          <mat-select formControlName="transmission">
+            <mat-option *ngFor="let t of transmissions" [value]="t">{{ t }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field>
+          <mat-label>Kilometraje actual</mat-label>
+          <input matInput type="number" formControlName="mileage" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Procedencia</mat-label>
+          <mat-select formControlName="origin">
+            <mat-option value="agency">Agencia</mat-option>
+            <mat-option value="imported">Rodado / Importado</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field *ngIf="form.controls.origin.value === 'imported'">
+          <mat-label>País de procedencia</mat-label>
+          <input matInput formControlName="originCountry" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Número de motor (opcional)</mat-label>
+          <input matInput formControlName="engineNumber" />
+        </mat-form-field>
+
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Observaciones</mat-label>
+          <textarea matInput formControlName="notes" rows="2"></textarea>
+        </mat-form-field>
+      </div>
+
+      <mat-slide-toggle formControlName="active" color="primary" style="margin:6px 0 16px;">
+        Vehículo activo
+      </mat-slide-toggle>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button mat-button type="button" (click)="cancel()">Cancelar</button>
+        <button mat-raised-button class="tc-btn-primary" type="submit" [disabled]="saving">
+          <mat-icon>save</mat-icon> {{ saving ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>

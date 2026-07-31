@@ -1,0 +1,69 @@
+<div class="tc-page">
+  <div class="tc-page-header">
+    <h1>Clientes</h1>
+    <a mat-raised-button class="tc-btn-primary" routerLink="/app/clients/new">
+      <mat-icon>person_add</mat-icon> Nuevo cliente
+    </a>
+  </div>
+
+  <mat-card class="tc-card">
+    <mat-form-field class="tc-full" style="margin-bottom:8px;">
+      <mat-label>Buscar por nombre, teléfono, correo, NIT o placa</mat-label>
+      <input matInput [formControl]="search" />
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
+    <div *ngIf="loading" class="tc-loading">
+      <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+    </div>
+
+    <div *ngIf="!loading && !dataSource.data.length" class="tc-empty">
+      <mat-icon>people</mat-icon>
+      <p>Aún no hay clientes registrados.</p>
+    </div>
+
+    <div class="tc-table-wrap" [hidden]="loading || !dataSource.data.length">
+      <table mat-table [dataSource]="dataSource" matSort class="tc-table">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+          <td mat-cell *matCellDef="let c">{{ c.firstName }} {{ c.lastName }}</td>
+        </ng-container>
+        <ng-container matColumnDef="taxId">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>NIT / CF</th>
+          <td mat-cell *matCellDef="let c">{{ c.taxId }}</td>
+        </ng-container>
+        <ng-container matColumnDef="phone">
+          <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+          <td mat-cell *matCellDef="let c">{{ c.phone }}</td>
+        </ng-container>
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Correo</th>
+          <td mat-cell *matCellDef="let c">{{ c.email }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let c">
+            <span class="tc-chip" [ngClass]="c.active ? 'tc-chip--ok' : 'tc-chip--muted'">
+              {{ c.active ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let c" (click)="$event.stopPropagation()">
+            <button mat-icon-button [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
+            <mat-menu #menu="matMenu">
+              <button mat-menu-item [routerLink]="['/app/clients', c.id]"><mat-icon>visibility</mat-icon> Ver</button>
+              <button mat-menu-item [routerLink]="['/app/clients', c.id, 'edit']"><mat-icon>edit</mat-icon> Editar</button>
+              <button mat-menu-item *ngIf="c.active" (click)="deactivate(c)"><mat-icon>block</mat-icon> Marcar inactivo</button>
+            </mat-menu>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" (click)="goDetail(row.id)" style="cursor:pointer;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]" pageSize="10" showFirstLastButtons></mat-paginator>
+    </div>
+  </mat-card>
+</div>

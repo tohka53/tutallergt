@@ -1,0 +1,66 @@
+<div class="tc-page">
+  <div class="tc-page-header">
+    <h1>{{ base === '/portal' ? 'Mis servicios' : 'Servicios' }}</h1>
+    <a *ngIf="isMechanic" mat-raised-button class="tc-btn-primary" routerLink="/app/services/new">
+      <mat-icon>add</mat-icon> Nuevo servicio
+    </a>
+  </div>
+
+  <mat-card class="tc-card">
+    <div class="tc-row" style="margin-bottom:8px;">
+      <mat-form-field style="flex:2; min-width:220px;">
+        <mat-label>Buscar por número, cliente o placa</mat-label>
+        <input matInput [formControl]="search" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+      <mat-form-field style="flex:1; min-width:160px;">
+        <mat-label>Estado</mat-label>
+        <mat-select [formControl]="statusFilter">
+          <mat-option value="all">Todos</mat-option>
+          <mat-option *ngFor="let s of statuses" [value]="s">{{ sLabel[s] }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div *ngIf="loading" class="tc-loading">
+      <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+    </div>
+    <div *ngIf="!loading && !dataSource.data.length" class="tc-empty">
+      <mat-icon>build</mat-icon><p>No hay servicios.</p>
+    </div>
+
+    <div class="tc-table-wrap" [hidden]="loading || !dataSource.data.length">
+      <table mat-table [dataSource]="dataSource" matSort class="tc-table">
+        <ng-container matColumnDef="number">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Orden</th>
+          <td mat-cell *matCellDef="let s"><strong>{{ s.number }}</strong></td>
+        </ng-container>
+        <ng-container matColumnDef="client">
+          <th mat-header-cell *matHeaderCellDef>Cliente</th>
+          <td mat-cell *matCellDef="let s">{{ clientName(s) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="vehicle">
+          <th mat-header-cell *matHeaderCellDef>Vehículo</th>
+          <td mat-cell *matCellDef="let s">{{ vehicleLabel(s) }}</td>
+        </ng-container>
+        <ng-container matColumnDef="entryDate">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Ingreso</th>
+          <td mat-cell *matCellDef="let s">{{ s.entryDate | date:'dd/MM/yyyy' }}</td>
+        </ng-container>
+        <ng-container matColumnDef="total">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
+          <td mat-cell *matCellDef="let s">{{ s.total | gtq }}</td>
+        </ng-container>
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Estado</th>
+          <td mat-cell *matCellDef="let s"><span class="tc-chip" [ngClass]="sChip[s.status]">{{ sLabel[s.status] }}</span></td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"
+            [routerLink]="[base, 'services', row.id]" style="cursor:pointer;"></tr>
+      </table>
+      <mat-paginator [pageSizeOptions]="[10, 25, 50]" pageSize="10" showFirstLastButtons></mat-paginator>
+    </div>
+  </mat-card>
+</div>

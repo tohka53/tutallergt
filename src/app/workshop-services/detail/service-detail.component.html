@@ -1,0 +1,103 @@
+<div class="tc-page">
+  <div class="tc-page-header">
+    <h1>Servicio</h1>
+    <a mat-button [routerLink]="[base, 'services']"><mat-icon>arrow_back</mat-icon> Volver</a>
+  </div>
+
+  <div *ngIf="loading" class="tc-loading">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+  </div>
+  <div *ngIf="!loading && !service" class="tc-empty"><mat-icon>error_outline</mat-icon><p>Servicio no encontrado.</p></div>
+
+  <ng-container *ngIf="!loading && service">
+    <mat-card class="tc-card" style="margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2 style="margin:0;">{{ service.number }}
+            <span class="tc-chip" [ngClass]="sChip[service.status]" style="margin-left:8px;">{{ sLabel[service.status] }}</span>
+          </h2>
+          <div class="tc-muted">Ingreso {{ service.entryDate | date:'dd/MM/yyyy' }}
+            <span *ngIf="service.estimatedDelivery"> · Entrega estimada {{ service.estimatedDelivery | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;" *ngIf="canManage">
+          <button mat-raised-button class="tc-btn-primary" (click)="changeStatus()"><mat-icon>sync</mat-icon> Cambiar estado</button>
+          <a mat-stroked-button [routerLink]="['/app/services', service.id, 'edit']"><mat-icon>edit</mat-icon> Editar</a>
+          <button mat-stroked-button color="warn" (click)="remove()"><mat-icon>delete</mat-icon> Eliminar</button>
+        </div>
+      </div>
+      <div *ngIf="service.quotationId" style="margin-top:10px;">
+        <a mat-stroked-button [routerLink]="[base, 'quotations', service.quotationId]">
+          <mat-icon>request_quote</mat-icon> Ver cotización de origen
+        </a>
+      </div>
+    </mat-card>
+
+    <div class="tc-row" style="margin-bottom:16px;">
+      <mat-card class="tc-card" style="flex:1; min-width:260px;">
+        <h3 style="margin:0 0 8px; font-size:14px; color:var(--tc-blue);">CLIENTE</h3>
+        <div>{{ client?.firstName }} {{ client?.lastName }}</div>
+        <div class="tc-muted">{{ client?.phone }}</div>
+      </mat-card>
+      <mat-card class="tc-card" style="flex:1; min-width:260px;">
+        <h3 style="margin:0 0 8px; font-size:14px; color:var(--tc-blue);">VEHÍCULO</h3>
+        <div>{{ vehicle?.brand }} {{ vehicle?.model }} {{ vehicle?.year }} · {{ vehicle?.plate }}</div>
+        <div class="tc-muted">Ingreso: {{ service.entryMileage.toLocaleString('es-GT') }} km · Combustible: {{ service.fuelLevel || '—' }}</div>
+      </mat-card>
+    </div>
+
+    <mat-card class="tc-card" style="margin-bottom:16px;">
+      <div class="tc-form-grid">
+        <div class="tc-col-span-2"><strong>Motivo:</strong> {{ service.reason }}</div>
+        <div class="tc-col-span-2"><strong>Diagnóstico:</strong> {{ service.diagnosis || '—' }}</div>
+        <div class="tc-col-span-2"><strong>Trabajos solicitados:</strong> {{ service.requestedWork || '—' }}</div>
+        <div class="tc-col-span-2"><strong>Trabajos realizados:</strong> {{ service.performedWork || '—' }}</div>
+        <div class="tc-col-span-2" *ngIf="isMechanic"><strong>Notas internas:</strong> {{ service.internalNotes || '—' }}</div>
+        <div class="tc-col-span-2"><strong>Notas para el cliente:</strong> {{ service.clientVisibleNotes || '—' }}</div>
+        <div><strong>Mecánico responsable:</strong> {{ service.mechanicName }}</div>
+      </div>
+    </mat-card>
+
+    <mat-card class="tc-card" style="margin-bottom:16px;">
+      <h3 style="margin:0 0 10px; font-size:15px;">Repuestos y mano de obra</h3>
+      <div class="tc-table-wrap">
+        <table class="tc-table" style="width:100%; border-collapse:collapse;">
+          <thead><tr style="background:var(--tc-blue); color:#fff;">
+            <th style="padding:8px; text-align:center;">Cant.</th>
+            <th style="padding:8px; text-align:left;">Descripción</th>
+            <th style="padding:8px; text-align:center;">Tipo</th>
+            <th style="padding:8px; text-align:right;">P. unit.</th>
+            <th style="padding:8px; text-align:right;">Subtotal</th>
+          </tr></thead>
+          <tbody>
+            <tr *ngFor="let it of service.items" style="border-bottom:1px solid var(--tc-border);">
+              <td style="padding:8px; text-align:center;">{{ it.quantity }}</td>
+              <td style="padding:8px;">{{ it.name }}</td>
+              <td style="padding:8px; text-align:center;">{{ typeLabel(it.type) }}</td>
+              <td style="padding:8px; text-align:right;">{{ it.unitPrice | gtq }}</td>
+              <td style="padding:8px; text-align:right;"><strong>{{ it.subtotal | gtq }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="text-align:right; font-size:18px; font-weight:800; margin-top:12px;">Total: {{ service.total | gtq }}</div>
+    </mat-card>
+
+    <mat-card class="tc-card">
+      <h3 style="margin:0 0 12px; font-size:15px;">Línea de tiempo de estados</h3>
+      <div class="timeline" style="padding-left:8px;">
+        <div *ngFor="let h of timeline" class="tl-item" style="display:flex; gap:14px; padding:6px 0 18px; position:relative;">
+          <div class="tl-dot" style="width:14px; height:14px; border-radius:50%; background:var(--tc-blue); margin-top:4px; flex:0 0 auto;"></div>
+          <div style="flex:1; background:var(--tc-bg-gray); border-radius:10px; padding:10px 14px;">
+            <div style="display:flex; justify-content:space-between; gap:8px;">
+              <strong>{{ sLabel[h.toStatus] }}</strong>
+              <span class="tc-muted" style="font-size:12px;">{{ h.changedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="tc-muted" style="font-size:12.5px;">{{ h.comment }}</div>
+            <div class="tc-muted" style="font-size:12px;">Por: {{ h.userName }}</div>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+  </ng-container>
+</div>

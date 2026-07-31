@@ -1,0 +1,60 @@
+<div class="login-wrap">
+  <div class="login-card tc-card">
+    <div class="brand">
+      <span class="logo">TC</span>
+      <div>
+        <h1>Taller Control</h1>
+        <span class="tc-demo-badge">MODO DEMOSTRACIÓN</span>
+      </div>
+    </div>
+    <p class="subtitle">Administración y control de taller mecánico</p>
+
+    <div class="role-cards">
+      <button type="button" class="role-card" [class.active]="selectedRole === 'mechanic'"
+              (click)="selectRole('mechanic')">
+        <mat-icon>engineering</mat-icon>
+        <span>Ingresar como mecánico</span>
+      </button>
+      <button type="button" class="role-card" [class.active]="selectedRole === 'client'"
+              (click)="selectRole('client')">
+        <mat-icon>person</mat-icon>
+        <span>Ingresar como cliente</span>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <mat-form-field class="tc-full">
+        <mat-label>Correo electrónico</mat-label>
+        <input matInput formControlName="email" type="email" autocomplete="username" />
+        <mat-icon matSuffix>mail</mat-icon>
+        <mat-error *ngIf="email.hasError('required')">El correo es obligatorio.</mat-error>
+        <mat-error *ngIf="email.hasError('email')">Correo no válido.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field class="tc-full">
+        <mat-label>Contraseña</mat-label>
+        <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'"
+               autocomplete="current-password" />
+        <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword"
+                [attr.aria-label]="hidePassword ? 'Mostrar contraseña' : 'Ocultar contraseña'">
+          <mat-icon>{{ hidePassword ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="password.hasError('required')">La contraseña es obligatoria.</mat-error>
+        <mat-error *ngIf="password.hasError('minlength')">Mínimo 6 caracteres.</mat-error>
+      </mat-form-field>
+
+      <button mat-raised-button class="tc-btn-primary tc-full" type="submit" [disabled]="loading">
+        <mat-icon *ngIf="!loading">login</mat-icon>
+        <mat-progress-spinner *ngIf="loading" diameter="20" mode="indeterminate" style="display:inline-block;">
+        </mat-progress-spinner>
+        <span style="margin-left:6px;">{{ loading ? 'Ingresando...' : 'Iniciar sesión' }}</span>
+      </button>
+    </form>
+
+    <div class="demo-creds">
+      <p><strong>Credenciales de demostración</strong></p>
+      <p>Mecánico: mecanico&#64;demo.com / Demo123!</p>
+      <p>Cliente: cliente&#64;demo.com / Demo123!</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,73 @@
+<div class="tc-page">
+  <div class="tc-page-header"><h1>Configuración del taller</h1></div>
+
+  <mat-card class="tc-card" style="max-width:820px;">
+    <p class="tc-muted" style="margin-top:0;">
+      Estos datos se usan en el encabezado del sistema y en el PDF de las cotizaciones.
+    </p>
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px; flex-wrap:wrap;">
+        <div style="height:80px; width:80px; border-radius:12px; border:2px dashed var(--tc-border);
+                    display:grid; place-items:center; overflow:hidden; background:var(--tc-bg-gray);">
+          <img *ngIf="logoPreview" [src]="logoPreview" alt="logo" style="max-height:100%; max-width:100%;" />
+          <mat-icon *ngIf="!logoPreview" style="color:var(--tc-muted);">image</mat-icon>
+        </div>
+        <div>
+          <button mat-stroked-button type="button" (click)="logoInput.click()">
+            <mat-icon>upload</mat-icon> Cambiar logo
+          </button>
+          <button mat-button type="button" color="warn" (click)="removeLogo()" *ngIf="logoPreview">Quitar</button>
+          <div class="tc-muted" style="font-size:12px;">PNG o JPG, máximo 1 MB.</div>
+        </div>
+        <input #logoInput type="file" accept="image/png,image/jpeg" (change)="onLogoSelected($event)" hidden />
+      </div>
+
+      <div class="tc-form-grid">
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Nombre del taller</mat-label>
+          <input matInput formControlName="name" />
+          <mat-error>Requerido.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Correo</mat-label>
+          <input matInput formControlName="email" type="email" />
+          <mat-error>Correo no válido.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Teléfono</mat-label>
+          <input matInput formControlName="phone" />
+          <mat-error>Requerido.</mat-error>
+        </mat-form-field>
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Dirección</mat-label>
+          <input matInput formControlName="address" />
+          <mat-error>Requerido.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>NIT</mat-label>
+          <input matInput formControlName="taxId" />
+          <mat-error>Requerido.</mat-error>
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Símbolo de moneda</mat-label>
+          <input matInput formControlName="currencySymbol" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Impuesto por defecto (%)</mat-label>
+          <input matInput type="number" formControlName="defaultTaxRate" />
+        </mat-form-field>
+        <mat-form-field>
+          <mat-label>Tamaño máx. de archivo (MB)</mat-label>
+          <input matInput type="number" formControlName="maxUploadMb" />
+        </mat-form-field>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; gap:10px; margin-top:8px;">
+        <button mat-button type="button" (click)="reset()">Restablecer</button>
+        <button mat-raised-button class="tc-btn-primary" type="submit" [disabled]="saving">
+          <mat-icon>save</mat-icon> Guardar configuración
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>

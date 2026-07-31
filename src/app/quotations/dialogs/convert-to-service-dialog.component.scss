@@ -1,0 +1,4 @@
+.conv-item { display: grid; grid-template-columns: 110px 1fr 70px 100px 90px 90px 40px; gap: 6px; align-items: start; margin-bottom: 6px; }
+.conv-sub { padding-top: 16px; font-weight: 700; text-align: right; }
+.conv-total { text-align: right; font-size: 18px; font-weight: 800; margin-top: 8px; }
+@media (max-width: 800px) { .conv-item { grid-template-columns: 1fr 1fr; } }

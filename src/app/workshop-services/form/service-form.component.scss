@@ -1,0 +1,7 @@
+.item-row { display: grid; grid-template-columns: 120px 1fr 80px 110px 90px 100px 40px; gap: 8px; align-items: start; margin-bottom: 6px; }
+.item-sub { padding-top: 16px; font-weight: 700; text-align: right; }
+.results { border: 1px solid var(--tc-border); border-radius: 8px; margin-top: 4px; max-height: 220px; overflow: auto; }
+.result-item { padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; border-bottom: 1px solid var(--tc-border); }
+.result-item:hover { background: var(--tc-bg-gray); }
+.conv-total { text-align: right; font-size: 18px; font-weight: 800; margin-top: 8px; }
+@media (max-width: 900px) { .item-row { grid-template-columns: 1fr 1fr; } }

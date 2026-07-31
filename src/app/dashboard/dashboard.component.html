@@ -1,0 +1,98 @@
+<div class="tc-page">
+  <div class="tc-page-header">
+    <h1>Panel general</h1>
+  </div>
+
+  <div *ngIf="loading" class="tc-loading">
+    <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+    <div class="quick">
+      <a mat-raised-button class="tc-btn-primary" routerLink="/app/clients/new">
+        <mat-icon>person_add</mat-icon> Nuevo cliente
+      </a>
+      <a mat-raised-button class="tc-btn-secondary" routerLink="/app/vehicles/new">
+        <mat-icon>add</mat-icon> Nuevo vehículo
+      </a>
+      <a mat-raised-button class="tc-btn-secondary" routerLink="/app/quotations/new">
+        <mat-icon>request_quote</mat-icon> Nueva cotización
+      </a>
+      <a mat-raised-button class="tc-btn-secondary" routerLink="/app/services/new">
+        <mat-icon>build</mat-icon> Nuevo servicio
+      </a>
+    </div>
+
+    <div class="kpi-grid">
+      <mat-card class="tc-card" *ngFor="let k of kpis">
+        <div class="kpi">
+          <div class="icon" [ngClass]="k.accent"><mat-icon>{{ k.icon }}</mat-icon></div>
+          <div>
+            <div class="value">{{ k.value }}</div>
+            <div class="label">{{ k.label }}</div>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <mat-card class="tc-card income-card" style="margin-bottom:20px;">
+      <div class="label" style="color:#cfd4da;">Ingresos estimados del mes</div>
+      <div class="value">{{ monthlyIncome | gtq }}</div>
+    </mat-card>
+
+    <div class="charts">
+      <mat-card class="tc-card">
+        <h2 class="section">Servicios por estado</h2>
+        <div class="bar-chart" *ngIf="statusBars.length; else noStatus">
+          <div class="bar-row" *ngFor="let b of statusBars">
+            <span class="b-label">{{ b.label }}</span>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width.%]="(b.value / maxOf(statusBars)) * 100" [style.background]="b.color"></div>
+            </div>
+            <span class="b-val">{{ b.value }}</span>
+          </div>
+        </div>
+        <ng-template #noStatus><p class="tc-muted">Sin servicios registrados.</p></ng-template>
+      </mat-card>
+
+      <mat-card class="tc-card">
+        <h2 class="section">Servicios por mes</h2>
+        <div class="col-chart">
+          <div class="col" *ngFor="let b of monthBars">
+            <span class="c-val">{{ b.value }}</span>
+            <div class="c-bar" [style.height.%]="(b.value / maxOf(monthBars)) * 100"></div>
+            <span class="c-label">{{ b.label }}</span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
+
+    <div class="recent-grid">
+      <mat-card class="tc-card">
+        <h2 class="section">Últimas cotizaciones</h2>
+        <p *ngIf="!recentQuotations.length" class="tc-muted">Aún no hay cotizaciones.</p>
+        <a *ngFor="let q of recentQuotations" class="recent-item"
+           [routerLink]="['/app/quotations', q.id]" style="text-decoration:none; color:inherit;">
+          <div>
+            <div class="r-title">{{ q.number }}</div>
+            <div class="r-sub">{{ q.date | date:'dd/MM/yyyy' }} · {{ q.total | gtq }}</div>
+          </div>
+          <span class="tc-chip" [ngClass]="qChip[q.status]">{{ qLabel[q.status] }}</span>
+        </a>
+      </mat-card>
+
+      <mat-card class="tc-card">
+        <h2 class="section">Últimos servicios</h2>
+        <p *ngIf="!recentServices.length" class="tc-muted">Aún no hay servicios.</p>
+        <a *ngFor="let s of recentServices" class="recent-item"
+           [routerLink]="['/app/services', s.id]" style="text-decoration:none; color:inherit;">
+          <div>
+            <div class="r-title">{{ s.number }}</div>
+            <div class="r-sub">{{ s.entryDate | date:'dd/MM/yyyy' }} · {{ s.total | gtq }}</div>
+          </div>
+          <span class="tc-chip" [ngClass]="sChip[s.status]">{{ sLabel[s.status] }}</span>
+        </a>
+      </mat-card>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,56 @@
+<h2 mat-dialog-title>Pasar a servicio · {{ data.quotation.number }}</h2>
+<mat-dialog-content>
+  <p class="tc-muted" style="margin-top:0;">
+    Revisa y ajusta lo que realmente se realizará. La cotización original se conserva para auditoría.
+  </p>
+  <form [formGroup]="form">
+    <div class="tc-form-grid">
+      <mat-form-field class="tc-col-span-2">
+        <mat-label>Motivo de ingreso</mat-label>
+        <input matInput formControlName="reason" />
+        <mat-error>Requerido.</mat-error>
+      </mat-form-field>
+      <mat-form-field class="tc-col-span-2">
+        <mat-label>Diagnóstico</mat-label>
+        <textarea matInput formControlName="diagnosis" rows="2"></textarea>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Entrega estimada</mat-label>
+        <input matInput [matDatepicker]="dp" formControlName="estimatedDelivery" />
+        <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+        <mat-datepicker #dp></mat-datepicker>
+      </mat-form-field>
+      <mat-form-field>
+        <mat-label>Nivel de combustible</mat-label>
+        <input matInput formControlName="fuelLevel" />
+      </mat-form-field>
+    </div>
+
+    <h3 style="font-size:14px; margin:12px 0 8px;">Artículos y trabajos</h3>
+    <div formArrayName="items">
+      <div class="conv-item" *ngFor="let it of items.controls; let i = index" [formGroupName]="i">
+        <mat-form-field>
+          <mat-label>Tipo</mat-label>
+          <mat-select formControlName="type">
+            <mat-option *ngFor="let t of itemTypes" [value]="t.value">{{ t.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field><mat-label>Descripción</mat-label><input matInput formControlName="name" /></mat-form-field>
+        <mat-form-field><mat-label>Cant.</mat-label><input matInput type="number" formControlName="quantity" /></mat-form-field>
+        <mat-form-field><mat-label>P. unit.</mat-label><input matInput type="number" formControlName="unitPrice" /></mat-form-field>
+        <mat-form-field><mat-label>Desc.</mat-label><input matInput type="number" formControlName="discount" /></mat-form-field>
+        <div class="conv-sub">{{ lineSubtotal(it) | gtq }}</div>
+        <button mat-icon-button color="warn" type="button" (click)="removeItem(i)"><mat-icon>delete</mat-icon></button>
+      </div>
+    </div>
+    <button mat-stroked-button type="button" (click)="addItem()"><mat-icon>add</mat-icon> Agregar trabajo/artículo</button>
+
+    <div class="conv-total">Total del servicio: {{ total | gtq }}</div>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close [disabled]="saving">Cancelar</button>
+  <button mat-raised-button class="tc-btn-primary" (click)="confirm()" [disabled]="saving">
+    <mat-icon>build</mat-icon> {{ saving ? 'Creando...' : 'Crear servicio' }}
+  </button>
+</mat-dialog-actions>
