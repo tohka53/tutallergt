@@ -29,6 +29,7 @@ interface HistoryEvent {
   selector: 'app-vehicle-history',
   standalone: false,
   templateUrl: './vehicle-history.component.html',
+  styleUrls: ['./vehicle-history.component.scss'],
 })
 export class VehicleHistoryComponent implements OnInit {
   private route = inject(ActivatedRoute);

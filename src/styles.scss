@@ -26,6 +26,15 @@
   --tc-status-void: #c62828;
   --tc-status-warn: #ef6c00;
   --tc-status-ok: #2e7d32;
+
+  /* altura de la barra superior */
+  --tc-header-h: 64px;
+
+  /* áreas seguras (notch iPhone, barra gestual Android) */
+  --tc-safe-top: env(safe-area-inset-top, 0px);
+  --tc-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tc-safe-left: env(safe-area-inset-left, 0px);
+  --tc-safe-right: env(safe-area-inset-right, 0px);
 }
 
 $tc-blue-palette: (
@@ -57,15 +66,26 @@ $tc-theme: mat.m2-define-light-theme((
 
 @include mat.all-component-themes($tc-theme);
 
+/* ============================================================
+   Base
+   ============================================================ */
 html, body { height: 100%; }
+html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   font-family: Roboto, 'Helvetica Neue', sans-serif;
   background: var(--tc-bg-gray);
   color: var(--tc-text);
+  overflow-x: hidden;
 }
 
 * { box-sizing: border-box; }
+
+/* Nada debe desbordar horizontalmente en móvil */
+img, svg, video, canvas, iframe { max-width: 100%; }
+
+/* Palabras largas (correos, VIN, URLs) no rompen el layout */
+h1, h2, h3, p, td, th, span, div, a, strong { overflow-wrap: anywhere; }
 
 /* Botones de marca */
 .tc-btn-primary.mat-mdc-raised-button {
@@ -109,7 +129,14 @@ body {
 .tc-chip--muted   { background: #eceff1; color: var(--tc-muted); }
 
 /* Utilidades de layout */
-.tc-page { padding: 24px; }
+.tc-page {
+  padding: 24px;
+  padding-left: max(24px, var(--tc-safe-left));
+  padding-right: max(24px, var(--tc-safe-right));
+  padding-bottom: calc(24px + var(--tc-safe-bottom));
+  max-width: 1440px;
+  margin: 0 auto;
+}
 .tc-page-header {
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
@@ -120,6 +147,10 @@ body {
 .tc-full { width: 100%; }
 .tc-muted { color: var(--tc-muted); }
 
+/* Grupo de acciones (encabezados de detalle, pies de formulario) */
+.tc-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.tc-actions--end { justify-content: flex-end; }
+
 .tc-empty {
   text-align: center; padding: 48px 16px; color: var(--tc-muted);
 }
@@ -127,8 +158,19 @@ body {
 
 .tc-loading { display: flex; justify-content: center; padding: 48px; }
 
-.tc-table-wrap { overflow-x: auto; width: 100%; }
+.tc-table-wrap { overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
 table.tc-table { width: 100%; }
+
+/* Celdas: enlaces y textos largos dentro de la tabla */
+.tc-cell-link { color: var(--tc-blue); text-decoration: none; }
+.tc-cell-link:hover { text-decoration: underline; }
+.tc-cell-ellipsis {
+  display: block; min-width: 0; max-width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Visibilidad por tamaño de pantalla */
+.tc-only-mobile { display: none !important; }
 
 .tc-snack-ok   { --mdc-snackbar-container-color: #2e7d32; }
 .tc-snack-error{ --mdc-snackbar-container-color: #c62828; }
@@ -145,6 +187,205 @@ table.tc-table { width: 100%; }
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .tc-form-grid .tc-col-span-2 { grid-column: 1 / -1; }
-@media (max-width: 700px) { .tc-form-grid { grid-template-columns: 1fr; } }
+
+/* Pares etiqueta/valor en pantallas de detalle */
+.tc-kv { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; min-width: 0; }
+.tc-kv .k {
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.4px; color: var(--tc-muted);
+}
+.tc-kv .v { font-size: 14.5px; }
 
 .mat-mdc-card { border-radius: 12px !important; }
+
+/* Ningún diálogo debe salirse de la pantalla */
+.mat-mdc-dialog-panel { max-width: calc(100vw - 24px) !important; }
+
+/* ============================================================
+   TABLET  (<= 1024px)
+   ============================================================ */
+@media (max-width: 1024px) {
+  .tc-page { padding: 18px; padding-bottom: calc(18px + var(--tc-safe-bottom)); }
+  .tc-page-header h1 { font-size: 21px; }
+}
+
+/* ============================================================
+   MÓVIL  (<= 900px)  ·  tablas -> tarjetas
+   ============================================================ */
+@media (max-width: 900px) {
+  :root { --tc-header-h: 56px; }
+
+  .tc-page {
+    padding: 12px;
+    padding-left: max(12px, var(--tc-safe-left));
+    padding-right: max(12px, var(--tc-safe-right));
+    padding-bottom: calc(20px + var(--tc-safe-bottom));
+  }
+  .tc-page-header { margin-bottom: 14px; gap: 10px; }
+  .tc-page-header h1 { font-size: 19px; flex: 1 1 100%; }
+  .tc-card { padding: 14px; }
+  .tc-form-grid { grid-template-columns: 1fr; }
+  .tc-empty { padding: 32px 12px; }
+  .tc-empty mat-icon { font-size: 44px; height: 44px; width: 44px; }
+  .tc-loading { padding: 32px; }
+
+  .tc-only-mobile { display: block !important; }
+  .tc-only-desktop { display: none !important; }
+
+  /* El botón principal de cada página ocupa todo el ancho */
+  .tc-page-header > .mat-mdc-raised-button { width: 100%; }
+  /* Los pies de formulario apilan botones a lo ancho */
+  .tc-actions--stack { flex-direction: column-reverse; align-items: stretch; }
+  .tc-actions--stack > * { width: 100%; }
+
+  /* Evita que los inputs disparen el zoom automático en iOS */
+  .mat-mdc-form-field input.mat-mdc-input-element,
+  .mat-mdc-form-field textarea.mat-mdc-input-element,
+  .mat-mdc-select-value-text { font-size: 16px; }
+
+  /* Los filtros en línea pasan a una sola columna */
+  .tc-row > .mat-mdc-form-field { flex: 1 1 100% !important; min-width: 0 !important; width: 100%; }
+
+  /* ---------- Tabla Material convertida en tarjetas ---------- */
+  .tc-table-wrap.tc-cards { overflow-x: visible; }
+
+  .tc-cards table.tc-table,
+  .tc-cards table.tc-table tbody { display: block; width: 100%; background: transparent; }
+  .tc-cards table.tc-table thead,
+  .tc-cards table.tc-table tr.mat-mdc-header-row { display: none; }
+
+  /* Cada fila es una tarjeta: título arriba a la izquierda, acciones arriba a
+     la derecha y el resto de los campos apilados debajo. */
+  .tc-cards table.tc-table tr.mat-mdc-row,
+  .tc-cards table.tc-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    height: auto;
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--tc-border);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 4px rgba(17, 17, 17, 0.05);
+  }
+  .tc-cards table.tc-table tbody tr:last-child { margin-bottom: 0; }
+
+  .tc-cards table.tc-table td.mat-mdc-cell,
+  .tc-cards table.tc-table tbody td {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 0;
+    padding: 7px 0 !important;
+    border: none;
+    border-top: 1px solid #f1f3f5;
+    text-align: left !important;
+    font-size: 14px;
+  }
+
+  .tc-cards table.tc-table td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--tc-muted);
+    white-space: nowrap;
+  }
+  /* La celda "primaria" es el título de la tarjeta */
+  .tc-cards table.tc-table td.tc-cell-title {
+    grid-column: 1;
+    grid-row: 1;
+    display: block;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--tc-black);
+    border-top: none;
+    padding: 2px 0 6px !important;
+  }
+  .tc-cards table.tc-table td.tc-cell-title::before { display: none; }
+  /* Las acciones se colocan en la esquina superior derecha de la tarjeta */
+  .tc-cards table.tc-table td.tc-cell-actions {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+    justify-content: flex-end;
+    border-top: none;
+    padding: 0 !important;
+    margin-left: 8px;
+  }
+
+  /* Paginador compacto */
+  .mat-mdc-paginator .mat-mdc-paginator-container {
+    flex-wrap: wrap; justify-content: center; padding: 4px 0; row-gap: 4px;
+  }
+  .mat-mdc-paginator .mat-mdc-paginator-page-size { margin-right: 8px; }
+
+  /* Diálogos: ocupan casi todo el ancho de la pantalla */
+  .cdk-overlay-pane.mat-mdc-dialog-panel {
+    max-width: 100vw !important;
+    width: calc(100vw - 16px) !important;
+    max-height: calc(100vh - 24px);
+  }
+  .mat-mdc-dialog-container .mat-mdc-dialog-content {
+    max-height: calc(100vh - 180px) !important;
+    padding-left: 16px; padding-right: 16px;
+  }
+  .mat-mdc-dialog-container .mat-mdc-dialog-title { padding-right: 16px; font-size: 18px; }
+  .mat-mdc-dialog-container .mat-mdc-dialog-actions {
+    padding: 8px 16px calc(8px + var(--tc-safe-bottom));
+    flex-wrap: wrap;
+  }
+
+  /* Menús y selects: que quepan */
+  .mat-mdc-menu-panel { max-width: calc(100vw - 24px) !important; }
+
+  /* Área táctil mínima cómoda */
+  .mat-mdc-raised-button, .mat-mdc-outlined-button, .mat-mdc-button { min-height: 42px; }
+}
+
+/* ============================================================
+   TABLET EN VERTICAL  (640px - 900px)
+   Se aprovecha el ancho extra: dos tarjetas por fila y formularios
+   en dos columnas, manteniendo la lectura tipo tarjeta.
+   ============================================================ */
+@media (min-width: 640px) and (max-width: 900px) {
+  .tc-cards table.tc-table tbody {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: start;
+  }
+  .tc-cards table.tc-table tbody tr { margin-bottom: 0; }
+
+  .tc-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tc-page-header h1 { flex: 0 1 auto; }
+  .tc-page-header > .mat-mdc-raised-button { width: auto; }
+  .tc-actions--stack { flex-direction: row; align-items: center; }
+  .tc-actions--stack > * { width: auto; }
+  .tc-row > .mat-mdc-form-field { flex: 1 1 220px !important; width: auto; }
+}
+
+/* ============================================================
+   MÓVIL PEQUEÑO  (<= 400px)
+   ============================================================ */
+@media (max-width: 400px) {
+  .tc-page-header h1 { font-size: 18px; }
+  .tc-card { padding: 12px; }
+  .tc-cards table.tc-table td.mat-mdc-cell,
+  .tc-cards table.tc-table tbody td { font-size: 13.5px; gap: 8px; }
+}
+
+/* Accesibilidad: respetar "reducir movimiento" */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

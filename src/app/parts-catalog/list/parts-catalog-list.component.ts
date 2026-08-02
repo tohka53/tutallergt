@@ -9,6 +9,7 @@ import { PartsCatalogService } from '../../core/services/parts-catalog.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PartCatalogItem } from '../../models';
 import { PartFormDialogComponent } from '../form/part-form-dialog.component';
+import { MobileSortOption } from '../../shared/components/mobile-sort/mobile-sort.component';
 
 @Component({
   selector: 'app-parts-catalog-list',
@@ -23,9 +24,17 @@ export class PartsCatalogListComponent implements OnInit, AfterViewInit {
   loading = true;
   search = new FormControl('', { nonNullable: true });
   categoryFilter = new FormControl('all', { nonNullable: true });
-  displayedColumns = ['code', 'name', 'category', 'type', 'price', 'status', 'actions'];
+  displayedColumns = ['name', 'code', 'category', 'type', 'price', 'status', 'actions'];
   dataSource = new MatTableDataSource<PartCatalogItem>([]);
   categories = this.catalog.categories;
+
+  /** Ordenamiento para móvil (la cabecera de la tabla se oculta en pantallas pequeñas). */
+  sortOptions: MobileSortOption[] = [
+    { id: 'name', dir: 'asc', label: 'Nombre (A-Z)' },
+    { id: 'category', dir: 'asc', label: 'Categoría' },
+    { id: 'price', dir: 'desc', label: 'Precio (mayor a menor)' },
+    { id: 'price', dir: 'asc', label: 'Precio (menor a mayor)' },
+  ];
 
   typeLabels: Record<string, string> = {
     part: 'Repuesto', material: 'Material', lubricant: 'Lubricante', labor: 'Mano de obra', other: 'Otro',
@@ -52,6 +61,9 @@ export class PartsCatalogListComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
+    // La columna "price" no coincide con la propiedad del modelo (suggestedPrice).
+    this.dataSource.sortingDataAccessor = (item, prop) =>
+      prop === 'price' ? item.suggestedPrice : String((item as unknown as Record<string, unknown>)[prop] ?? '');
     this.dataSource.sort = this.sort;
   }
 

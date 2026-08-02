@@ -42,7 +42,7 @@
           <input matInput formControlName="address" />
         </mat-form-field>
       </div>
-      <div style="text-align:right; margin-top:8px;">
+      <div class="tc-actions tc-actions--end tc-actions--stack" style="margin-top:8px;">
         <button mat-raised-button class="tc-btn-primary" type="submit" [disabled]="saving">
           <mat-icon>save</mat-icon> {{ saving ? 'Guardando...' : 'Guardar cambios' }}
         </button>

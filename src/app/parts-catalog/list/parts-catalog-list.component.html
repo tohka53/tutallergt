@@ -9,8 +9,8 @@
   <mat-card class="tc-card">
     <div class="tc-row" style="margin-bottom:8px;">
       <mat-form-field style="flex:2; min-width:220px;">
-        <mat-label>Buscar por nombre, código o descripción</mat-label>
-        <input matInput [formControl]="search" />
+        <mat-label>Buscar</mat-label>
+        <input matInput [formControl]="search" placeholder="Nombre, código o descripción" />
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
       <mat-form-field style="flex:1; min-width:180px;">
@@ -30,31 +30,34 @@
       <mat-icon>inventory_2</mat-icon><p>Sin artículos que coincidan.</p>
     </div>
 
-    <div class="tc-table-wrap" [hidden]="loading || !dataSource.data.length">
+    <app-mobile-sort *ngIf="!loading && dataSource.data.length"
+                     [dataSource]="dataSource" [options]="sortOptions"></app-mobile-sort>
+
+    <div class="tc-table-wrap tc-cards" [hidden]="loading || !dataSource.data.length">
       <table mat-table [dataSource]="dataSource" matSort class="tc-table">
-        <ng-container matColumnDef="code">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Código</th>
-          <td mat-cell *matCellDef="let i">{{ i.code || '—' }}</td>
-        </ng-container>
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
-          <td mat-cell *matCellDef="let i">{{ i.name }}</td>
+          <td mat-cell *matCellDef="let i" class="tc-cell-title">{{ i.name }}</td>
+        </ng-container>
+        <ng-container matColumnDef="code">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Código</th>
+          <td mat-cell *matCellDef="let i" data-label="Código">{{ i.code || '—' }}</td>
         </ng-container>
         <ng-container matColumnDef="category">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Categoría</th>
-          <td mat-cell *matCellDef="let i">{{ i.category }}</td>
+          <td mat-cell *matCellDef="let i" data-label="Categoría">{{ i.category }}</td>
         </ng-container>
         <ng-container matColumnDef="type">
           <th mat-header-cell *matHeaderCellDef>Tipo</th>
-          <td mat-cell *matCellDef="let i">{{ typeLabels[i.type] }}</td>
+          <td mat-cell *matCellDef="let i" data-label="Tipo">{{ typeLabels[i.type] }}</td>
         </ng-container>
         <ng-container matColumnDef="price">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Precio</th>
-          <td mat-cell *matCellDef="let i">{{ i.suggestedPrice | gtq }}</td>
+          <td mat-cell *matCellDef="let i" data-label="Precio"><strong>{{ i.suggestedPrice | gtq }}</strong></td>
         </ng-container>
         <ng-container matColumnDef="status">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let i">
+          <td mat-cell *matCellDef="let i" data-label="Estado">
             <span class="tc-chip" [ngClass]="i.active ? 'tc-chip--ok' : 'tc-chip--muted'">
               {{ i.active ? 'Activo' : 'Inactivo' }}
             </span>
@@ -62,9 +65,12 @@
         </ng-container>
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let i">
-            <button mat-icon-button (click)="openForm(i)" matTooltip="Editar"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button (click)="toggle(i)" [matTooltip]="i.active ? 'Desactivar' : 'Activar'">
+          <td mat-cell *matCellDef="let i" class="tc-cell-actions">
+            <button mat-icon-button (click)="openForm(i)" matTooltip="Editar" aria-label="Editar artículo">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button (click)="toggle(i)" [matTooltip]="i.active ? 'Desactivar' : 'Activar'"
+                    [attr.aria-label]="i.active ? 'Desactivar artículo' : 'Activar artículo'">
               <mat-icon>{{ i.active ? 'toggle_on' : 'toggle_off' }}</mat-icon>
             </button>
           </td>

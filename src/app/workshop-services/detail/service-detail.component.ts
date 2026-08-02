@@ -18,6 +18,7 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/componen
   selector: 'app-service-detail',
   standalone: false,
   templateUrl: './service-detail.component.html',
+  styleUrls: ['./service-detail.component.scss'],
 })
 export class ServiceDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);

@@ -1,0 +1,24 @@
+@use '../../shared/detail' as detail;
+
+@include detail.tc-detail();
+
+.doc-title { margin: 0 0 12px; font-size: 16px; }
+.doc-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.doc-icon { color: var(--tc-blue); font-size: 40px; height: 40px; width: 40px; flex: 0 0 auto; }
+.doc-meta { margin-right: auto; min-width: 0; }
+.doc-name { font-weight: 600; }
+.doc-sub { font-size: 12.5px; }
+
+@media (max-width: 900px) {
+  .doc-row { gap: 10px; }
+  .doc-meta { flex: 1 1 100%; order: 2; }
+  .doc-actions {
+    order: 3; flex: 1 1 100%;
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;
+  }
+  .doc-actions > * { width: 100%; margin: 0; }
+}
+
+@media (max-width: 420px) {
+  .doc-actions { grid-template-columns: 1fr; }
+}

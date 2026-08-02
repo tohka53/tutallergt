@@ -1,11 +1,9 @@
 .kpi-grid {
   display: grid; gap: 16px; grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;
 }
-@media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px) { .kpi-grid { grid-template-columns: 1fr; } }
-.kpi { display: flex; align-items: center; gap: 14px; }
+.kpi { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .kpi .icon {
-  height: 48px; width: 48px; border-radius: 12px; display: grid; place-items: center;
+  height: 48px; width: 48px; border-radius: 12px; display: grid; place-items: center; flex: 0 0 auto;
 }
 .kpi .icon mat-icon { color: #fff; }
 .kpi .icon.blue { background: var(--tc-blue); }
@@ -15,26 +13,65 @@
 .kpi .icon.gray { background: var(--tc-dark-gray); }
 .kpi .value { font-size: 26px; font-weight: 800; line-height: 1; }
 .kpi .label { color: var(--tc-muted); font-size: 13px; }
+
 .income-card { background: linear-gradient(135deg, #111, #343a40); color: #fff; }
 .income-card .value { color: var(--tc-yellow); font-size: 30px; font-weight: 800; }
+
 .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
-@media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
 .bar-chart { display: flex; flex-direction: column; gap: 10px; }
 .bar-row { display: grid; grid-template-columns: 130px 1fr 34px; align-items: center; gap: 10px; }
 .bar-row .b-label { font-size: 12.5px; color: var(--tc-text); }
 .bar-track { background: #eef1f4; border-radius: 6px; height: 16px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
 .bar-row .b-val { font-weight: 700; font-size: 13px; text-align: right; }
+
 .col-chart { display: flex; align-items: flex-end; gap: 12px; height: 180px; padding-top: 10px; }
-.col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; min-width: 0; }
 .col .c-bar { width: 70%; background: var(--tc-blue); border-radius: 6px 6px 0 0; min-height: 4px; transition: height 0.4s ease; }
 .col .c-val { font-weight: 700; font-size: 13px; }
 .col .c-label { font-size: 12px; color: var(--tc-muted); }
+
 .quick { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+
 .recent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-@media (max-width: 900px) { .recent-grid { grid-template-columns: 1fr; } }
-.recent-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--tc-border); }
+.recent-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--tc-border); }
 .recent-item:last-child { border-bottom: none; }
 .recent-item .r-title { font-weight: 600; }
 .recent-item .r-sub { font-size: 12px; color: var(--tc-muted); }
 h2.section { font-size: 16px; margin: 0 0 12px; }
+
+/* ---------------- Adaptación a pantallas pequeñas ---------------- */
+@media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 900px) {
+  .charts, .recent-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+  .charts { margin: 14px 0; }
+
+  /* Accesos rápidos: dos por fila, ocupando todo el ancho */
+  .quick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+  .quick > a {
+    width: 100%; height: auto; min-height: 46px; padding: 8px 10px;
+    line-height: 1.2; white-space: normal;
+  }
+  .quick > a ::ng-deep .mdc-button__label { white-space: normal; }
+
+  .income-card .value { font-size: 26px; }
+  .bar-row { grid-template-columns: minmax(0, 1fr) 30px; grid-template-areas: 'label val' 'track track'; row-gap: 4px; }
+  .bar-row .b-label { grid-area: label; }
+  .bar-row .b-val { grid-area: val; }
+  .bar-track { grid-area: track; height: 12px; }
+  .col-chart { height: 150px; gap: 6px; }
+  .col .c-val, .col .c-label { font-size: 11.5px; }
+}
+
+@media (max-width: 480px) {
+  .kpi { gap: 10px; }
+  .kpi .icon { height: 38px; width: 38px; border-radius: 10px; }
+  .kpi .icon mat-icon { font-size: 21px; height: 21px; width: 21px; }
+  .kpi .value { font-size: 21px; }
+  .kpi .label { font-size: 11.5px; line-height: 1.25; }
+}
+
+@media (max-width: 360px) {
+  .quick { grid-template-columns: 1fr; }
+}

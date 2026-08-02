@@ -55,7 +55,7 @@
         Cliente activo
       </mat-slide-toggle>
 
-      <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <div class="tc-actions tc-actions--end tc-actions--stack">
         <button mat-button type="button" (click)="cancel()">Cancelar</button>
         <button mat-raised-button class="tc-btn-primary" type="submit" [disabled]="saving">
           <mat-icon>save</mat-icon> {{ saving ? 'Guardando...' : 'Guardar' }}

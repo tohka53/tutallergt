@@ -13,60 +13,62 @@
   </div>
 
   <ng-container *ngIf="!loading && client">
-    <mat-card class="tc-card" style="margin-bottom:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
-        <div>
-          <h2 style="margin:0;">{{ client.firstName }} {{ client.lastName }}</h2>
+    <mat-card class="tc-card detail-head">
+      <div class="head-top">
+        <div class="head-id">
+          <h2>{{ client.firstName }} {{ client.lastName }}</h2>
           <span class="tc-chip" [ngClass]="client.active ? 'tc-chip--ok' : 'tc-chip--muted'">
             {{ client.active ? 'Activo' : 'Inactivo' }}
           </span>
         </div>
-        <a mat-raised-button class="tc-btn-secondary" [routerLink]="['/app/clients', client.id, 'edit']">
-          <mat-icon>edit</mat-icon> Editar
-        </a>
+        <div class="tc-actions head-actions">
+          <a mat-raised-button class="tc-btn-secondary" [routerLink]="['/app/clients', client.id, 'edit']">
+            <mat-icon>edit</mat-icon> Editar
+          </a>
+        </div>
       </div>
       <mat-divider style="margin:14px 0;"></mat-divider>
       <div class="tc-form-grid">
-        <div><strong>NIT / CF:</strong> {{ client.taxId }}</div>
-        <div><strong>Teléfono:</strong> {{ client.phone }}</div>
-        <div><strong>WhatsApp:</strong> {{ client.whatsapp || '—' }}</div>
-        <div><strong>Correo:</strong> {{ client.email }}</div>
-        <div class="tc-col-span-2"><strong>Dirección:</strong> {{ client.address || '—' }}</div>
-        <div class="tc-col-span-2"><strong>Observaciones:</strong> {{ client.notes || '—' }}</div>
-        <div><strong>Registrado:</strong> {{ client.createdAt | date:'dd/MM/yyyy' }}</div>
+        <div class="tc-kv"><span class="k">NIT / CF</span><span class="v">{{ client.taxId }}</span></div>
+        <div class="tc-kv"><span class="k">Teléfono</span>
+          <a class="v tc-cell-link" [href]="'tel:' + client.phone">{{ client.phone }}</a>
+        </div>
+        <div class="tc-kv"><span class="k">WhatsApp</span><span class="v">{{ client.whatsapp || '—' }}</span></div>
+        <div class="tc-kv"><span class="k">Correo</span>
+          <a class="v tc-cell-link" [href]="'mailto:' + client.email">{{ client.email }}</a>
+        </div>
+        <div class="tc-kv tc-col-span-2"><span class="k">Dirección</span><span class="v">{{ client.address || '—' }}</span></div>
+        <div class="tc-kv tc-col-span-2"><span class="k">Observaciones</span><span class="v">{{ client.notes || '—' }}</span></div>
+        <div class="tc-kv"><span class="k">Registrado</span><span class="v">{{ client.createdAt | date:'dd/MM/yyyy' }}</span></div>
       </div>
     </mat-card>
 
-    <mat-card class="tc-card" style="margin-bottom:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="margin:0; font-size:16px;">Vehículos ({{ vehicles$.length }})</h2>
+    <mat-card class="tc-card list-card">
+      <div class="card-head">
+        <h2>Vehículos ({{ vehicles$.length }})</h2>
         <a mat-button class="tc-btn-secondary" [routerLink]="['/app/vehicles/new']"
            [queryParams]="{ ownerId: client.id }"><mat-icon>add</mat-icon> Agregar</a>
       </div>
       <p *ngIf="!vehicles$.length" class="tc-muted" style="margin:10px 0 0;">Sin vehículos.</p>
-      <a *ngFor="let v of vehicles$" class="recent-item"
-         [routerLink]="['/app/vehicles', v.id]"
-         style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--tc-border); text-decoration:none; color:inherit;">
+      <a *ngFor="let v of vehicles$" class="link-row" [routerLink]="['/app/vehicles', v.id]">
         <span>{{ v.brand }} {{ v.model }} {{ v.year }} · <strong>{{ v.plate }}</strong></span>
         <mat-icon>chevron_right</mat-icon>
       </a>
     </mat-card>
 
     <div class="tc-row">
-      <mat-card class="tc-card" style="flex:1; min-width:280px;">
-        <h2 style="margin:0 0 10px; font-size:16px;">Cotizaciones ({{ quotations$.length }})</h2>
+      <mat-card class="tc-card half-card">
+        <h2>Cotizaciones ({{ quotations$.length }})</h2>
         <p *ngIf="!quotations$.length" class="tc-muted">Sin cotizaciones.</p>
-        <a *ngFor="let q of quotations$" [routerLink]="['/app/quotations', q.id]"
-           style="display:flex; justify-content:space-between; padding:8px 0; text-decoration:none; color:inherit;">
+        <a *ngFor="let q of quotations$" class="link-row" [routerLink]="['/app/quotations', q.id]">
           <span>{{ q.number }} · {{ q.total | gtq }}</span>
           <span class="tc-chip" [ngClass]="qChip[q.status]">{{ qLabel[q.status] }}</span>
         </a>
       </mat-card>
-      <mat-card class="tc-card" style="flex:1; min-width:280px;">
-        <h2 style="margin:0 0 10px; font-size:16px;">Servicios ({{ services$.length }})</h2>
+      <mat-card class="tc-card half-card">
+        <h2>Servicios ({{ services$.length }})</h2>
         <p *ngIf="!services$.length" class="tc-muted">Sin servicios.</p>
-        <a *ngFor="let s of services$" [routerLink]="['/app/services', s.id]"
-           style="display:flex; justify-content:space-between; padding:8px 0; text-decoration:none; color:inherit;">
+        <a *ngFor="let s of services$" class="link-row" [routerLink]="['/app/services', s.id]">
           <span>{{ s.number }} · {{ s.total | gtq }}</span>
           <span class="tc-chip" [ngClass]="sChip[s.status]">{{ sLabel[s.status] }}</span>
         </a>

@@ -20,6 +20,7 @@ import {
   selector: 'app-vehicle-detail',
   standalone: false,
   templateUrl: './vehicle-detail.component.html',
+  styleUrls: ['./vehicle-detail.component.scss'],
 })
 export class VehicleDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);

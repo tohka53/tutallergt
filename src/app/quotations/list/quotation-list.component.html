@@ -9,8 +9,8 @@
   <mat-card class="tc-card">
     <div class="tc-row" style="margin-bottom:8px;">
       <mat-form-field style="flex:2; min-width:220px;">
-        <mat-label>Buscar por número, cliente o placa</mat-label>
-        <input matInput [formControl]="search" />
+        <mat-label>Buscar</mat-label>
+        <input matInput [formControl]="search" placeholder="Número, cliente o placa" />
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
       <mat-form-field style="flex:1; min-width:160px;">
@@ -29,31 +29,36 @@
       <mat-icon>request_quote</mat-icon><p>No hay cotizaciones.</p>
     </div>
 
-    <div class="tc-table-wrap" [hidden]="loading || !dataSource.data.length">
+    <app-mobile-sort *ngIf="!loading && dataSource.data.length"
+                     [dataSource]="dataSource" [options]="sortOptions"></app-mobile-sort>
+
+    <div class="tc-table-wrap tc-cards" [hidden]="loading || !dataSource.data.length">
       <table mat-table [dataSource]="dataSource" matSort class="tc-table">
         <ng-container matColumnDef="number">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Número</th>
-          <td mat-cell *matCellDef="let q"><strong>{{ q.number }}</strong></td>
+          <td mat-cell *matCellDef="let q" class="tc-cell-title"><strong>{{ q.number }}</strong></td>
         </ng-container>
         <ng-container matColumnDef="client">
           <th mat-header-cell *matHeaderCellDef>Cliente</th>
-          <td mat-cell *matCellDef="let q">{{ clientName(q) }}</td>
+          <td mat-cell *matCellDef="let q" data-label="Cliente">{{ clientName(q) }}</td>
         </ng-container>
         <ng-container matColumnDef="vehicle">
           <th mat-header-cell *matHeaderCellDef>Vehículo</th>
-          <td mat-cell *matCellDef="let q">{{ vehicleLabel(q) }}</td>
+          <td mat-cell *matCellDef="let q" data-label="Vehículo">{{ vehicleLabel(q) }}</td>
         </ng-container>
         <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha</th>
-          <td mat-cell *matCellDef="let q">{{ q.date | date:'dd/MM/yyyy' }}</td>
+          <td mat-cell *matCellDef="let q" data-label="Fecha">{{ q.date | date:'dd/MM/yyyy' }}</td>
         </ng-container>
         <ng-container matColumnDef="total">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
-          <td mat-cell *matCellDef="let q">{{ q.total | gtq }}</td>
+          <td mat-cell *matCellDef="let q" data-label="Total"><strong>{{ q.total | gtq }}</strong></td>
         </ng-container>
         <ng-container matColumnDef="status">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let q"><span class="tc-chip" [ngClass]="qChip[q.status]">{{ qLabel[q.status] }}</span></td>
+          <td mat-cell *matCellDef="let q" data-label="Estado">
+            <span class="tc-chip" [ngClass]="qChip[q.status]">{{ qLabel[q.status] }}</span>
+          </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

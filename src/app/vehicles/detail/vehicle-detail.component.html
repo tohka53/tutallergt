@@ -13,13 +13,13 @@
   </div>
 
   <ng-container *ngIf="!loading && vehicle">
-    <mat-card class="tc-card" style="margin-bottom:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
-        <div>
-          <h2 style="margin:0;">{{ vehicle.brand }} {{ vehicle.model }} {{ vehicle.year }}</h2>
+    <mat-card class="tc-card detail-head">
+      <div class="head-top">
+        <div class="head-id">
+          <h2>{{ vehicle.brand }} {{ vehicle.model }} {{ vehicle.year }}</h2>
           <div class="tc-muted">Placa <strong>{{ vehicle.plate }}</strong></div>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="tc-actions head-actions">
           <a mat-raised-button class="tc-btn-secondary" [routerLink]="[base, 'vehicles', vehicle.id, 'history']">
             <mat-icon>history</mat-icon> Historial
           </a>
@@ -34,50 +34,52 @@
       </div>
       <mat-divider style="margin:14px 0;"></mat-divider>
       <div class="tc-form-grid">
-        <div><strong>Propietario:</strong> {{ owner ? owner.firstName + ' ' + owner.lastName : '—' }}</div>
-        <div><strong>VIN:</strong> {{ vehicle.vin || '—' }}</div>
-        <div><strong>Color:</strong> {{ vehicle.color || '—' }}</div>
-        <div><strong>Tipo:</strong> {{ vehicle.type }}</div>
-        <div><strong>Cilindraje:</strong> {{ vehicle.engineSize || '—' }}</div>
-        <div><strong>Combustible:</strong> {{ vehicle.fuelType }}</div>
-        <div><strong>Transmisión:</strong> {{ vehicle.transmission }}</div>
-        <div><strong>Kilometraje:</strong> {{ vehicle.mileage.toLocaleString('es-GT') }} km</div>
-        <div><strong>Procedencia:</strong> {{ vehicle.origin === 'agency' ? 'Agencia' : 'Rodado / Importado' }}</div>
-        <div *ngIf="vehicle.origin === 'imported'"><strong>País:</strong> {{ vehicle.originCountry || '—' }}</div>
-        <div><strong>No. motor:</strong> {{ vehicle.engineNumber || '—' }}</div>
-        <div class="tc-col-span-2"><strong>Observaciones:</strong> {{ vehicle.notes || '—' }}</div>
+        <div class="tc-kv"><span class="k">Propietario</span><span class="v">{{ owner ? owner.firstName + ' ' + owner.lastName : '—' }}</span></div>
+        <div class="tc-kv"><span class="k">VIN</span><span class="v">{{ vehicle.vin || '—' }}</span></div>
+        <div class="tc-kv"><span class="k">Color</span><span class="v">{{ vehicle.color || '—' }}</span></div>
+        <div class="tc-kv"><span class="k">Tipo</span><span class="v">{{ vehicle.type }}</span></div>
+        <div class="tc-kv"><span class="k">Cilindraje</span><span class="v">{{ vehicle.engineSize || '—' }}</span></div>
+        <div class="tc-kv"><span class="k">Combustible</span><span class="v">{{ vehicle.fuelType }}</span></div>
+        <div class="tc-kv"><span class="k">Transmisión</span><span class="v">{{ vehicle.transmission }}</span></div>
+        <div class="tc-kv"><span class="k">Kilometraje</span><span class="v">{{ vehicle.mileage.toLocaleString('es-GT') }} km</span></div>
+        <div class="tc-kv"><span class="k">Procedencia</span><span class="v">{{ vehicle.origin === 'agency' ? 'Agencia' : 'Rodado / Importado' }}</span></div>
+        <div class="tc-kv" *ngIf="vehicle.origin === 'imported'"><span class="k">País</span><span class="v">{{ vehicle.originCountry || '—' }}</span></div>
+        <div class="tc-kv"><span class="k">No. motor</span><span class="v">{{ vehicle.engineNumber || '—' }}</span></div>
+        <div class="tc-kv tc-col-span-2"><span class="k">Observaciones</span><span class="v">{{ vehicle.notes || '—' }}</span></div>
       </div>
     </mat-card>
 
     <mat-card class="tc-card">
-      <h2 style="margin:0 0 12px; font-size:16px;">Tarjeta de circulación</h2>
+      <h2 class="doc-title">Tarjeta de circulación</h2>
 
       <div *ngIf="uploading" class="tc-loading">
         <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
       </div>
 
-      <div *ngIf="!uploading && document" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-        <mat-icon style="color:var(--tc-blue); font-size:40px; height:40px; width:40px;">
+      <div *ngIf="!uploading && document" class="doc-row">
+        <mat-icon class="doc-icon">
           {{ document.mimeType === 'application/pdf' ? 'picture_as_pdf' : 'image' }}
         </mat-icon>
-        <div style="margin-right:auto;">
-          <div style="font-weight:600;">{{ document.fileName }}</div>
-          <div class="tc-muted" style="font-size:12.5px;">
+        <div class="doc-meta">
+          <div class="doc-name">{{ document.fileName }}</div>
+          <div class="tc-muted doc-sub">
             {{ document.mimeType }} · {{ document.size | fileSize }} · Cargado {{ document.uploadedAt | date:'dd/MM/yyyy HH:mm' }}
           </div>
         </div>
-        <button mat-raised-button class="tc-btn-primary" (click)="preview()">
-          <mat-icon>visibility</mat-icon> Ver
-        </button>
-        <button mat-stroked-button (click)="fileInput.click()">
-          <mat-icon>swap_horiz</mat-icon> Reemplazar
-        </button>
-        <button mat-stroked-button color="warn" (click)="removeDocument()">
-          <mat-icon>delete</mat-icon> Eliminar
-        </button>
+        <div class="tc-actions doc-actions">
+          <button mat-raised-button class="tc-btn-primary" (click)="preview()">
+            <mat-icon>visibility</mat-icon> Ver
+          </button>
+          <button mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>swap_horiz</mat-icon> Reemplazar
+          </button>
+          <button mat-stroked-button color="warn" (click)="removeDocument()">
+            <mat-icon>delete</mat-icon> Eliminar
+          </button>
+        </div>
       </div>
 
-      <div *ngIf="!uploading && !document" class="tc-empty" style="padding:24px;">
+      <div *ngIf="!uploading && !document" class="tc-empty" style="padding:24px 12px;">
         <mat-icon>badge</mat-icon>
         <p>No se ha cargado la tarjeta de circulación (opcional).</p>
         <button mat-raised-button class="tc-btn-primary" (click)="fileInput.click()">

@@ -1,5 +1,11 @@
 .login-wrap {
-  min-height: 100vh; display: grid; place-items: center; padding: 24px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  padding-top: calc(24px + var(--tc-safe-top));
+  padding-bottom: calc(24px + var(--tc-safe-bottom));
   background: linear-gradient(135deg, #111 0%, #343a40 100%);
 }
 .login-card { width: 100%; max-width: 420px; }
@@ -7,6 +13,7 @@
 .brand .logo {
   height: 52px; width: 52px; border-radius: 12px; background: var(--tc-yellow);
   color: var(--tc-black); display: grid; place-items: center; font-weight: 800; font-size: 22px;
+  flex: 0 0 auto;
 }
 .brand h1 { margin: 0 0 4px; font-size: 22px; color: var(--tc-black); }
 .subtitle { color: var(--tc-muted); margin: 12px 0 20px; }
@@ -15,10 +22,11 @@
   border: 2px solid var(--tc-border); border-radius: 12px; background: #fff; cursor: pointer;
   padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px;
   font-weight: 600; color: var(--tc-text); transition: all 0.15s ease;
+  text-align: center; line-height: 1.25; min-height: 88px;
 }
 .role-card mat-icon { color: var(--tc-blue); font-size: 30px; height: 30px; width: 30px; }
 .role-card:hover { border-color: var(--tc-blue); }
-.role-card.active { border-color: var(--tc-yellow); background: #fffdf5; box-shadow: 0 2px 8px rgba(255,193,7,0.3); }
+.role-card.active { border-color: var(--tc-yellow); background: #fffdf5; box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3); }
 .role-card.active mat-icon { color: var(--tc-black); }
 .demo-creds {
   margin-top: 18px; padding: 12px 14px; background: var(--tc-bg-gray);
@@ -26,3 +34,16 @@
 }
 .demo-creds p { margin: 2px 0; }
 button[type="submit"] { margin-top: 4px; height: 46px; }
+
+@media (max-width: 600px) {
+  .login-wrap { padding: 14px; padding-bottom: calc(14px + var(--tc-safe-bottom)); }
+  .brand .logo { height: 46px; width: 46px; font-size: 19px; }
+  .brand h1 { font-size: 19px; }
+  .subtitle { margin: 10px 0 16px; font-size: 13.5px; }
+  .role-cards { gap: 8px; margin-bottom: 16px; }
+  .role-card { padding: 12px 8px; font-size: 13px; min-height: 78px; }
+}
+
+@media (max-width: 340px) {
+  .role-cards { grid-template-columns: 1fr; }
+}

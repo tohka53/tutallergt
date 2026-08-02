@@ -9,8 +9,8 @@
   <mat-card class="tc-card">
     <div class="tc-row" style="margin-bottom:8px;">
       <mat-form-field style="flex:2; min-width:220px;">
-        <mat-label>Buscar por número, cliente o placa</mat-label>
-        <input matInput [formControl]="search" />
+        <mat-label>Buscar</mat-label>
+        <input matInput [formControl]="search" placeholder="Número, cliente o placa" />
         <mat-icon matSuffix>search</mat-icon>
       </mat-form-field>
       <mat-form-field style="flex:1; min-width:160px;">
@@ -29,31 +29,36 @@
       <mat-icon>build</mat-icon><p>No hay servicios.</p>
     </div>
 
-    <div class="tc-table-wrap" [hidden]="loading || !dataSource.data.length">
+    <app-mobile-sort *ngIf="!loading && dataSource.data.length"
+                     [dataSource]="dataSource" [options]="sortOptions"></app-mobile-sort>
+
+    <div class="tc-table-wrap tc-cards" [hidden]="loading || !dataSource.data.length">
       <table mat-table [dataSource]="dataSource" matSort class="tc-table">
         <ng-container matColumnDef="number">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Orden</th>
-          <td mat-cell *matCellDef="let s"><strong>{{ s.number }}</strong></td>
+          <td mat-cell *matCellDef="let s" class="tc-cell-title"><strong>{{ s.number }}</strong></td>
         </ng-container>
         <ng-container matColumnDef="client">
           <th mat-header-cell *matHeaderCellDef>Cliente</th>
-          <td mat-cell *matCellDef="let s">{{ clientName(s) }}</td>
+          <td mat-cell *matCellDef="let s" data-label="Cliente">{{ clientName(s) }}</td>
         </ng-container>
         <ng-container matColumnDef="vehicle">
           <th mat-header-cell *matHeaderCellDef>Vehículo</th>
-          <td mat-cell *matCellDef="let s">{{ vehicleLabel(s) }}</td>
+          <td mat-cell *matCellDef="let s" data-label="Vehículo">{{ vehicleLabel(s) }}</td>
         </ng-container>
         <ng-container matColumnDef="entryDate">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Ingreso</th>
-          <td mat-cell *matCellDef="let s">{{ s.entryDate | date:'dd/MM/yyyy' }}</td>
+          <td mat-cell *matCellDef="let s" data-label="Ingreso">{{ s.entryDate | date:'dd/MM/yyyy' }}</td>
         </ng-container>
         <ng-container matColumnDef="total">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Total</th>
-          <td mat-cell *matCellDef="let s">{{ s.total | gtq }}</td>
+          <td mat-cell *matCellDef="let s" data-label="Total"><strong>{{ s.total | gtq }}</strong></td>
         </ng-container>
         <ng-container matColumnDef="status">
           <th mat-header-cell *matHeaderCellDef>Estado</th>
-          <td mat-cell *matCellDef="let s"><span class="tc-chip" [ngClass]="sChip[s.status]">{{ sLabel[s.status] }}</span></td>
+          <td mat-cell *matCellDef="let s" data-label="Estado">
+            <span class="tc-chip" [ngClass]="sChip[s.status]">{{ sLabel[s.status] }}</span>
+          </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

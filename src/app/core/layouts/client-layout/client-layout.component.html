@@ -1,37 +1,52 @@
-<mat-sidenav-container class="tc-shell">
-  <mat-sidenav mode="side" opened class="tc-sidenav" [class.collapsed]="collapsed" [disableClose]="true">
+<mat-sidenav-container class="tc-shell" [class.compact-nav]="compactNav">
+  <mat-sidenav class="tc-sidenav"
+               [mode]="compactNav ? 'over' : 'side'"
+               [opened]="navOpen"
+               (openedChange)="navOpen = $event"
+               [disableClose]="!compactNav"
+               [fixedInViewport]="compactNav"
+               [class.collapsed]="collapsed && !compactNav">
     <div class="tc-brand">
-      <img *ngIf="settings.current.logoDataUrl" [src]="settings.current.logoDataUrl" alt="logo" />
-      <span *ngIf="!settings.current.logoDataUrl" class="logo-fallback">TC</span>
-      <span class="name" *ngIf="!collapsed">{{ settings.current.name }}</span>
+      <img *ngIf="settings.current.logoDataUrl" [src]="settings.current.logoDataUrl" alt="Logo del taller" />
+      <span *ngIf="!settings.current.logoDataUrl" class="logo-fallback" aria-hidden="true">TC</span>
+      <span class="name" *ngIf="!collapsed || compactNav">{{ settings.current.name }}</span>
+      <button *ngIf="compactNav" mat-icon-button class="close-nav" (click)="navOpen = false"
+              aria-label="Cerrar menú">
+        <mat-icon>close</mat-icon>
+      </button>
     </div>
     <nav class="tc-nav">
       <a *ngFor="let item of nav" [routerLink]="item.link" routerLinkActive="active"
-         [matTooltip]="collapsed ? item.label : ''" matTooltipPosition="right">
+         [matTooltip]="!compactNav && collapsed ? item.label : ''" matTooltipPosition="right">
         <mat-icon>{{ item.icon }}</mat-icon>
-        <span *ngIf="!collapsed">{{ item.label }}</span>
+        <span *ngIf="!collapsed || compactNav">{{ item.label }}</span>
       </a>
     </nav>
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <mat-toolbar class="tc-header" style="height: 64px;">
-      <button mat-icon-button (click)="toggle()" aria-label="Colapsar menú">
+    <mat-toolbar class="tc-header">
+      <button mat-icon-button (click)="toggle()"
+              [attr.aria-label]="compactNav ? 'Abrir menú' : 'Colapsar menú'">
         <mat-icon>menu</mat-icon>
       </button>
       <span class="title">Portal del cliente</span>
-      <span class="tc-demo-badge" style="margin-left: 10px;">MODO DEMOSTRACIÓN</span>
+      <span class="tc-demo-badge demo-badge">MODO DEMOSTRACIÓN</span>
       <span class="tc-spacer"></span>
 
-      <div class="tc-user" [matMenuTriggerFor]="userMenu" tabindex="0">
+      <button type="button" class="tc-user" [matMenuTriggerFor]="userMenu" aria-label="Menú de usuario">
         <mat-icon color="primary">account_circle</mat-icon>
-        <div>
+        <span class="u-text">
+          <span class="u-name">{{ user?.displayName }}</span>
+          <span class="u-role">Cliente</span>
+        </span>
+        <mat-icon class="u-caret">arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #userMenu="matMenu">
+        <div class="menu-user-head">
           <div class="u-name">{{ user?.displayName }}</div>
           <div class="u-role">Cliente</div>
         </div>
-        <mat-icon>arrow_drop_down</mat-icon>
-      </div>
-      <mat-menu #userMenu="matMenu">
         <button mat-menu-item routerLink="/portal/profile">
           <mat-icon>person</mat-icon><span>Mi perfil</span>
         </button>

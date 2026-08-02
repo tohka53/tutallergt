@@ -10,15 +10,14 @@
   <div *ngIf="!loading && !quotation" class="tc-empty"><mat-icon>error_outline</mat-icon><p>Cotización no encontrada.</p></div>
 
   <ng-container *ngIf="!loading && quotation">
-    <mat-card class="tc-card" style="margin-bottom:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
-        <div>
-          <h2 style="margin:0;">{{ quotation.number }}
-            <span class="tc-chip" [ngClass]="qChip[quotation.status]" style="margin-left:8px;">{{ qLabel[quotation.status] }}</span>
-          </h2>
+    <mat-card class="tc-card detail-head">
+      <div class="head-top">
+        <div class="head-id">
+          <h2>{{ quotation.number }}</h2>
+          <span class="tc-chip" [ngClass]="qChip[quotation.status]">{{ qLabel[quotation.status] }}</span>
           <div class="tc-muted">{{ quotation.date | date:'dd/MM/yyyy' }} · Vigencia {{ quotation.validityDays }} días</div>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="tc-actions head-actions">
           <button mat-raised-button class="tc-btn-secondary" (click)="preview()"><mat-icon>picture_as_pdf</mat-icon> Ver PDF</button>
           <ng-container *ngIf="isMechanic">
             <button mat-raised-button class="tc-btn-secondary" (click)="share()"><mat-icon>share</mat-icon> Compartir</button>
@@ -36,62 +35,65 @@
       </div>
     </mat-card>
 
-    <div class="tc-row" style="margin-bottom:16px;">
-      <mat-card class="tc-card" style="flex:1; min-width:260px;">
-        <h3 style="margin:0 0 8px; font-size:14px; color:var(--tc-blue);">CLIENTE</h3>
+    <div class="tc-row info-row">
+      <mat-card class="tc-card">
+        <h3>CLIENTE</h3>
         <div>{{ client?.firstName }} {{ client?.lastName }}</div>
         <div class="tc-muted">NIT/CF: {{ client?.taxId }} · {{ client?.phone }}</div>
         <div class="tc-muted">{{ client?.email }}</div>
       </mat-card>
-      <mat-card class="tc-card" style="flex:1; min-width:260px;">
-        <h3 style="margin:0 0 8px; font-size:14px; color:var(--tc-blue);">VEHÍCULO</h3>
+      <mat-card class="tc-card">
+        <h3>VEHÍCULO</h3>
         <div>{{ vehicle?.brand }} {{ vehicle?.model }} {{ vehicle?.year }} · {{ vehicle?.plate }}</div>
         <div class="tc-muted">Cilindraje: {{ vehicle?.engineSize }} · {{ quotation.mileage.toLocaleString('es-GT') }} km</div>
       </mat-card>
     </div>
 
-    <mat-card class="tc-card" style="margin-bottom:16px;">
-      <div class="tc-table-wrap">
-        <table class="tc-table" style="width:100%; border-collapse:collapse;">
+    <mat-card class="tc-card items-card">
+      <div class="tc-table-wrap tc-cards">
+        <table class="tc-table doc-table">
           <thead>
-            <tr style="background:var(--tc-blue); color:#fff;">
-              <th style="padding:8px; text-align:center;">Cant.</th>
-              <th style="padding:8px; text-align:left;">Descripción</th>
-              <th style="padding:8px; text-align:center;">Tipo</th>
-              <th style="padding:8px; text-align:right;">P. unit.</th>
-              <th style="padding:8px; text-align:right;">Desc.</th>
-              <th style="padding:8px; text-align:right;">Subtotal</th>
+            <tr>
+              <th class="c-center">Cant.</th>
+              <th>Descripción</th>
+              <th class="c-center">Tipo</th>
+              <th class="c-right">P. unit.</th>
+              <th class="c-right">Desc.</th>
+              <th class="c-right">Subtotal</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let it of quotation.items" style="border-bottom:1px solid var(--tc-border);">
-              <td style="padding:8px; text-align:center;">{{ it.quantity }}</td>
-              <td style="padding:8px;">{{ it.name }}<div class="tc-muted" *ngIf="it.note" style="font-size:12px;">{{ it.note }}</div></td>
-              <td style="padding:8px; text-align:center;">{{ typeLabel(it.type) }}</td>
-              <td style="padding:8px; text-align:right;">{{ it.unitPrice | gtq }}</td>
-              <td style="padding:8px; text-align:right;">{{ it.discount | gtq }}</td>
-              <td style="padding:8px; text-align:right;"><strong>{{ it.subtotal | gtq }}</strong></td>
+            <tr *ngFor="let it of quotation.items">
+              <td class="tc-cell-title">
+                {{ it.name }}
+                <div class="tc-muted item-note" *ngIf="it.note">{{ it.note }}</div>
+              </td>
+              <td class="c-center" data-label="Cant.">{{ it.quantity }}</td>
+              <td class="c-center" data-label="Tipo">{{ typeLabel(it.type) }}</td>
+              <td class="c-right" data-label="P. unit.">{{ it.unitPrice | gtq }}</td>
+              <td class="c-right" data-label="Desc.">{{ it.discount | gtq }}</td>
+              <td class="c-right" data-label="Subtotal"><strong>{{ it.subtotal | gtq }}</strong></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div style="max-width:340px; margin-left:auto; margin-top:16px;">
-        <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Subtotal repuestos:</span><span>{{ quotation.partsSubtotal | gtq }}</span></div>
-        <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Subtotal mano de obra:</span><span>{{ quotation.laborSubtotal | gtq }}</span></div>
-        <div style="display:flex; justify-content:space-between; padding:3px 0;"><span>Descuentos:</span><span>- {{ quotation.discountTotal | gtq }}</span></div>
-        <div style="display:flex; justify-content:space-between; padding:3px 0;" *ngIf="quotation.applyTax"><span>Impuesto ({{ quotation.taxRate }}%):</span><span>{{ quotation.taxAmount | gtq }}</span></div>
-        <div style="display:flex; justify-content:space-between; padding:8px 0; font-size:18px; font-weight:800; border-top:2px solid var(--tc-yellow); margin-top:6px;"><span>TOTAL:</span><span>{{ quotation.total | gtq }}</span></div>
-        <div class="tc-muted" style="font-size:12px; font-style:italic;">Son: {{ totalInWords }}</div>
+      <div class="totals-box">
+        <div class="totals-row"><span>Subtotal repuestos:</span><span>{{ quotation.partsSubtotal | gtq }}</span></div>
+        <div class="totals-row"><span>Subtotal mano de obra:</span><span>{{ quotation.laborSubtotal | gtq }}</span></div>
+        <div class="totals-row"><span>Descuentos:</span><span>- {{ quotation.discountTotal | gtq }}</span></div>
+        <div class="totals-row" *ngIf="quotation.applyTax"><span>Impuesto ({{ quotation.taxRate }}%):</span><span>{{ quotation.taxAmount | gtq }}</span></div>
+        <div class="totals-row grand"><span>TOTAL:</span><span>{{ quotation.total | gtq }}</span></div>
+        <div class="tc-muted in-words">Son: {{ totalInWords }}</div>
       </div>
     </mat-card>
 
     <mat-card class="tc-card">
       <div class="tc-form-grid">
-        <div><strong>Forma de pago:</strong> {{ quotation.paymentMethod }}</div>
-        <div><strong>Vigencia:</strong> {{ quotation.validityDays }} días</div>
-        <div class="tc-col-span-2"><strong>Consideraciones:</strong> {{ quotation.considerations || '—' }}</div>
-        <div class="tc-col-span-2"><strong>Observaciones:</strong> {{ quotation.notes || '—' }}</div>
+        <div class="tc-kv"><span class="k">Forma de pago</span><span class="v">{{ quotation.paymentMethod }}</span></div>
+        <div class="tc-kv"><span class="k">Vigencia</span><span class="v">{{ quotation.validityDays }} días</span></div>
+        <div class="tc-kv tc-col-span-2"><span class="k">Consideraciones</span><span class="v">{{ quotation.considerations || '—' }}</span></div>
+        <div class="tc-kv tc-col-span-2"><span class="k">Observaciones</span><span class="v">{{ quotation.notes || '—' }}</span></div>
       </div>
     </mat-card>
   </ng-container>

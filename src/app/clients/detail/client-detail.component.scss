@@ -1,0 +1,20 @@
+@use '../../shared/detail' as detail;
+
+@include detail.tc-detail();
+
+.list-card { margin-bottom: 16px; }
+.card-head {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; flex-wrap: wrap;
+}
+.card-head h2, .half-card h2 { margin: 0; font-size: 16px; }
+.half-card { flex: 1 1 280px; min-width: 0; }
+.half-card h2 { margin-bottom: 10px; }
+
+.link-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 11px 0; border-bottom: 1px solid var(--tc-border);
+  text-decoration: none; color: inherit; min-height: 44px;
+}
+.link-row:last-child { border-bottom: none; }
+.link-row:hover { color: var(--tc-blue); }

@@ -67,7 +67,7 @@
 
       <div class="catalog-search" style="margin-bottom:12px;">
         <mat-form-field class="tc-full">
-          <mat-label>Buscar repuesto o trabajo en el catálogo</mat-label>
+          <mat-label>Buscar en el catálogo</mat-label>
           <input matInput #searchBox (input)="onSearch(searchBox.value)" placeholder="Ej: pastillas, aceite, frenos..." />
           <mat-icon matSuffix>search</mat-icon>
         </mat-form-field>
@@ -84,35 +84,35 @@
              cdkDrag [class.labor]="item.get('type')?.value === 'labor'">
           <mat-icon class="drag-handle" cdkDragHandle>drag_indicator</mat-icon>
 
-          <mat-form-field>
+          <mat-form-field class="f-type">
             <mat-label>Tipo</mat-label>
             <mat-select formControlName="type">
               <mat-option *ngFor="let t of itemTypes" [value]="t.value">{{ t.label }}</mat-option>
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field class="f-name">
             <mat-label>Descripción</mat-label>
             <input matInput formControlName="name" />
             <mat-error>Requerido.</mat-error>
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field class="f-qty">
             <mat-label>Cant.</mat-label>
-            <input matInput type="number" formControlName="quantity" min="0" />
+            <input matInput type="number" inputmode="numeric" formControlName="quantity" min="0" />
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field class="f-price">
             <mat-label>P. unitario</mat-label>
-            <input matInput type="number" formControlName="unitPrice" min="0" />
+            <input matInput type="number" inputmode="decimal" formControlName="unitPrice" min="0" />
           </mat-form-field>
 
-          <mat-form-field>
+          <mat-form-field class="f-disc">
             <mat-label>Descuento</mat-label>
-            <input matInput type="number" formControlName="discount" min="0" />
+            <input matInput type="number" inputmode="decimal" formControlName="discount" min="0" />
           </mat-form-field>
 
-          <div class="item-subtotal">{{ lineSubtotal(item) | gtq }}</div>
+          <div class="item-subtotal"><span class="lbl">Subtotal</span>{{ lineSubtotal(item) | gtq }}</div>
 
           <div class="item-actions">
             <button mat-icon-button type="button" (click)="duplicateItem(i)" matTooltip="Duplicar"><mat-icon>content_copy</mat-icon></button>
@@ -142,7 +142,7 @@
       </div>
     </mat-card>
 
-    <div style="display:flex; justify-content:flex-end; gap:10px; padding-bottom:24px;">
+    <div class="tc-actions tc-actions--end tc-actions--stack" style="padding-bottom:24px;">
       <button mat-button type="button" (click)="cancel()">Cancelar</button>
       <button mat-raised-button type="button" (click)="save('draft')" [disabled]="saving">
         <mat-icon>save</mat-icon> Guardar borrador

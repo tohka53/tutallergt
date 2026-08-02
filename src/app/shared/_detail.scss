@@ -1,0 +1,70 @@
+/* ============================================================
+   Estilos comunes de las pantallas de detalle (cotización / servicio).
+   Se incluye desde cada componente con:  @use '../../shared/detail' as detail;
+   ============================================================ */
+@mixin tc-detail() {
+  .detail-head { margin-bottom: 16px; }
+
+  .head-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .head-id { min-width: 0; }
+  .head-id h2 { margin: 0 0 6px; font-size: 20px; display: inline-block; margin-right: 8px; }
+  .head-id .tc-muted { margin-top: 4px; }
+
+  .info-row { margin-bottom: 16px; }
+  .info-row > .tc-card { flex: 1 1 260px; min-width: 0; }
+  .info-row h3 { margin: 0 0 8px; font-size: 14px; color: var(--tc-blue); letter-spacing: 0.4px; }
+
+  .items-card { margin-bottom: 16px; }
+  .items-card h3 { margin: 0 0 10px; font-size: 15px; }
+
+  .doc-table { width: 100%; border-collapse: collapse; }
+  .doc-table thead tr { background: var(--tc-blue); color: #fff; }
+  .doc-table th { padding: 8px; text-align: left; font-weight: 600; font-size: 13.5px; }
+  .doc-table td { padding: 8px; }
+  .doc-table tbody tr { border-bottom: 1px solid var(--tc-border); }
+  .doc-table .c-center { text-align: center; }
+  .doc-table .c-right { text-align: right; }
+  .item-note { font-size: 12px; }
+
+  .totals-box { max-width: 340px; margin-left: auto; margin-top: 16px; }
+  .totals-row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+  .totals-row.grand {
+    padding: 8px 0; font-size: 18px; font-weight: 800;
+    border-top: 2px solid var(--tc-yellow); margin-top: 6px;
+  }
+  .in-words { font-size: 12px; font-style: italic; }
+
+  .grand-total { text-align: right; font-size: 18px; font-weight: 800; margin-top: 12px; }
+
+  /* Línea de tiempo de estados */
+  .timeline { padding-left: 4px; }
+  .tl-item { display: flex; gap: 14px; padding: 6px 0 18px; position: relative; }
+  .tl-dot {
+    width: 14px; height: 14px; border-radius: 50%; background: var(--tc-blue);
+    margin-top: 4px; flex: 0 0 auto;
+  }
+  .tl-body { flex: 1; min-width: 0; background: var(--tc-bg-gray); border-radius: 10px; padding: 10px 14px; }
+  .tl-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+
+  /* ---------- Móvil ---------- */
+  @media (max-width: 900px) {
+    .head-top { flex-direction: column; align-items: stretch; }
+    .head-id h2 { font-size: 18px; }
+    .head-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .head-actions > * {
+      width: 100%; margin: 0; height: auto; min-height: 46px;
+      padding: 6px 10px; line-height: 1.2; white-space: normal;
+    }
+
+    .totals-box { max-width: none; margin-left: 0; }
+    .totals-row.grand { font-size: 17px; }
+    .grand-total { text-align: left; font-size: 17px; }
+  }
+
+  @media (max-width: 380px) {
+    .head-actions { grid-template-columns: 1fr; }
+  }
+}

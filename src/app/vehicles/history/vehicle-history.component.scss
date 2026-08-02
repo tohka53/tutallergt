@@ -1,0 +1,33 @@
+.veh-card { margin-bottom: 16px; }
+
+.filters { margin-bottom: 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.filters mat-button-toggle-group { white-space: nowrap; }
+
+.timeline { position: relative; padding-left: 4px; }
+.tl-item {
+  display: flex; gap: 14px; padding: 6px 0 18px;
+  text-decoration: none; color: inherit; position: relative;
+}
+.tl-item:not(:last-child)::before {
+  content: ''; position: absolute; left: 6px; top: 18px; bottom: 0;
+  width: 2px; background: var(--tc-border);
+}
+.tl-dot {
+  width: 14px; height: 14px; border-radius: 50%; background: var(--tc-blue);
+  margin-top: 4px; flex: 0 0 auto; z-index: 1;
+}
+.tl-dot.service { background: var(--tc-yellow); }
+.tl-content {
+  flex: 1; min-width: 0; background: var(--tc-bg-gray);
+  border-radius: 10px; padding: 12px 14px;
+}
+.tl-head {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; flex-wrap: wrap;
+}
+.tl-sub { font-size: 12.5px; margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .tl-item { gap: 10px; padding-bottom: 14px; }
+  .tl-content { padding: 10px 12px; }
+}

@@ -14,6 +14,7 @@ import { Client } from '../../models';
 import {
   ConfirmDialogComponent, ConfirmDialogData,
 } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { MobileSortOption } from '../../shared/components/mobile-sort/mobile-sort.component';
 
 @Component({
   selector: 'app-client-list',
@@ -32,6 +33,13 @@ export class ClientListComponent implements OnInit, AfterViewInit {
   displayedColumns = ['name', 'taxId', 'phone', 'email', 'status', 'actions'];
   dataSource = new MatTableDataSource<Client>([]);
   private platesByClient = new Map<string, string>();
+
+  /** Ordenamiento para móvil (la cabecera de la tabla se oculta en pantallas pequeñas). */
+  sortOptions: MobileSortOption[] = [
+    { id: 'name', dir: 'asc', label: 'Nombre (A-Z)' },
+    { id: 'name', dir: 'desc', label: 'Nombre (Z-A)' },
+    { id: 'taxId', dir: 'asc', label: 'NIT / CF' },
+  ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;

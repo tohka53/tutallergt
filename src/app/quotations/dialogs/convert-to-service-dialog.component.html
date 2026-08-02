@@ -29,18 +29,19 @@
     <h3 style="font-size:14px; margin:12px 0 8px;">Artículos y trabajos</h3>
     <div formArrayName="items">
       <div class="conv-item" *ngFor="let it of items.controls; let i = index" [formGroupName]="i">
-        <mat-form-field>
+        <mat-form-field class="f-type">
           <mat-label>Tipo</mat-label>
           <mat-select formControlName="type">
             <mat-option *ngFor="let t of itemTypes" [value]="t.value">{{ t.label }}</mat-option>
           </mat-select>
         </mat-form-field>
-        <mat-form-field><mat-label>Descripción</mat-label><input matInput formControlName="name" /></mat-form-field>
-        <mat-form-field><mat-label>Cant.</mat-label><input matInput type="number" formControlName="quantity" /></mat-form-field>
-        <mat-form-field><mat-label>P. unit.</mat-label><input matInput type="number" formControlName="unitPrice" /></mat-form-field>
-        <mat-form-field><mat-label>Desc.</mat-label><input matInput type="number" formControlName="discount" /></mat-form-field>
-        <div class="conv-sub">{{ lineSubtotal(it) | gtq }}</div>
-        <button mat-icon-button color="warn" type="button" (click)="removeItem(i)"><mat-icon>delete</mat-icon></button>
+        <mat-form-field class="f-name"><mat-label>Descripción</mat-label><input matInput formControlName="name" /></mat-form-field>
+        <mat-form-field class="f-qty"><mat-label>Cant.</mat-label><input matInput type="number" inputmode="numeric" formControlName="quantity" /></mat-form-field>
+        <mat-form-field class="f-price"><mat-label>P. unit.</mat-label><input matInput type="number" inputmode="decimal" formControlName="unitPrice" /></mat-form-field>
+        <mat-form-field class="f-disc"><mat-label>Desc.</mat-label><input matInput type="number" inputmode="decimal" formControlName="discount" /></mat-form-field>
+        <div class="conv-sub"><span class="lbl">Subtotal</span>{{ lineSubtotal(it) | gtq }}</div>
+        <button class="item-del" mat-icon-button color="warn" type="button" (click)="removeItem(i)"
+                aria-label="Eliminar artículo"><mat-icon>delete</mat-icon></button>
       </div>
     </div>
     <button mat-stroked-button type="button" (click)="addItem()"><mat-icon>add</mat-icon> Agregar trabajo/artículo</button>

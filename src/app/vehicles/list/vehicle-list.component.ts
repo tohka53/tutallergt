@@ -17,6 +17,7 @@ import { basePath } from '../vehicle-nav.util';
 import {
   ConfirmDialogComponent, ConfirmDialogData,
 } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { MobileSortOption } from '../../shared/components/mobile-sort/mobile-sort.component';
 
 @Component({
   selector: 'app-vehicle-list',
@@ -39,6 +40,13 @@ export class VehicleListComponent implements OnInit, AfterViewInit {
   base = basePath(this.auth);
   canDelete = this.authz.canDeleteVehicle();
   displayedColumns: string[] = [];
+
+  /** Ordenamiento para móvil (la cabecera de la tabla se oculta en pantallas pequeñas). */
+  sortOptions: MobileSortOption[] = [
+    { id: 'plate', dir: 'asc', label: 'Placa (A-Z)' },
+    { id: 'year', dir: 'desc', label: 'Año (más nuevo primero)' },
+    { id: 'year', dir: 'asc', label: 'Año (más antiguo primero)' },
+  ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;

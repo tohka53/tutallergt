@@ -12,6 +12,7 @@ import { AuthorizationService } from '../../core/services/authorization.service'
 import { Client, ServiceStatus, Vehicle, WorkshopService } from '../../models';
 import { basePath } from '../../shared/nav.util';
 import { SERVICE_STATUS_CHIP, SERVICE_STATUS_LABELS } from '../../shared/status.util';
+import { MobileSortOption } from '../../shared/components/mobile-sort/mobile-sort.component';
 
 @Component({
   selector: 'app-service-list',
@@ -38,6 +39,14 @@ export class ServiceListComponent implements OnInit, AfterViewInit {
   sLabel: Record<string, string> = SERVICE_STATUS_LABELS;
   sChip: Record<string, string> = SERVICE_STATUS_CHIP;
   statuses: ServiceStatus[] = ['received', 'diagnosis', 'pending-auth', 'waiting-part', 'repairing', 'testing', 'done', 'delivered', 'cancelled'];
+
+  /** Ordenamiento para móvil (la cabecera de la tabla se oculta en pantallas pequeñas). */
+  sortOptions: MobileSortOption[] = [
+    { id: 'entryDate', dir: 'desc', label: 'Ingreso (más reciente)' },
+    { id: 'entryDate', dir: 'asc', label: 'Ingreso (más antiguo)' },
+    { id: 'total', dir: 'desc', label: 'Total (mayor a menor)' },
+    { id: 'number', dir: 'asc', label: 'Número de orden' },
+  ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;

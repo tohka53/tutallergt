@@ -14,6 +14,7 @@ import {
   selector: 'app-client-detail',
   standalone: false,
   templateUrl: './client-detail.component.html',
+  styleUrls: ['./client-detail.component.scss'],
 })
 export class ClientDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);

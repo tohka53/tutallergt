@@ -20,6 +20,7 @@ import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/componen
   selector: 'app-quotation-detail',
   standalone: false,
   templateUrl: './quotation-detail.component.html',
+  styleUrls: ['./quotation-detail.component.scss'],
 })
 export class QuotationDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);

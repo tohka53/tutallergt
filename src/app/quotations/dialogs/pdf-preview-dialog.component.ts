@@ -12,8 +12,7 @@ export interface PdfPreviewData { quotation: Quotation; client: Client; vehicle:
   template: `
     <h2 mat-dialog-title>Vista previa · {{ data.quotation.number }}</h2>
     <mat-dialog-content>
-      <iframe *ngIf="safeUrl" [src]="safeUrl" style="width:100%; height:70vh; border:none;"
-              title="Vista previa PDF"></iframe>
+      <iframe *ngIf="safeUrl" [src]="safeUrl" class="pdf-frame" title="Vista previa PDF"></iframe>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
       <button mat-button mat-dialog-close>Cerrar</button>
@@ -22,6 +21,12 @@ export interface PdfPreviewData { quotation: Quotation; client: Client; vehicle:
       </button>
     </mat-dialog-actions>
   `,
+  styles: [`
+    .pdf-frame { display: block; width: 100%; height: 70vh; border: none; }
+    @media (max-width: 900px) {
+      .pdf-frame { height: calc(100vh - 240px); min-height: 300px; }
+    }
+  `],
 })
 export class PdfPreviewDialogComponent implements OnInit, OnDestroy {
   private pdf = inject(QuotationPdfService);

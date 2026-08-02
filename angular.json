@@ -10,8 +10,12 @@
           "standalone": false,
           "style": "scss"
         },
-        "@schematics/angular:directive": { "standalone": false },
-        "@schematics/angular:pipe": { "standalone": false }
+        "@schematics/angular:directive": {
+          "standalone": false
+        },
+        "@schematics/angular:pipe": {
+          "standalone": false
+        }
       },
       "root": "",
       "sourceRoot": "src",
@@ -23,11 +27,23 @@
             "outputPath": "dist/control-taller",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            "polyfills": ["zone.js"],
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.scss"],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets"
+            ],
+            "styles": [
+              "@fontsource/roboto/latin-300.css",
+              "@fontsource/roboto/latin-400.css",
+              "@fontsource/roboto/latin-500.css",
+              "@fontsource/roboto/latin-700.css",
+              "material-icons/iconfont/filled.css",
+              "src/styles.scss"
+            ],
             "scripts": [],
             "allowedCommonJsDependencies": [
               "jspdf",
@@ -43,8 +59,16 @@
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "2mb", "maximumError": "4mb" },
-                { "type": "anyComponentStyle", "maximumWarning": "6kb", "maximumError": "20kb" }
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "4mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kb",
+                  "maximumError": "20kb"
+                }
               ],
               "outputHashing": "all",
               "optimization": {
@@ -70,19 +94,36 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
-            "production": { "buildTarget": "control-taller:build:production" },
-            "development": { "buildTarget": "control-taller:build:development" }
+            "production": {
+              "buildTarget": "control-taller:build:production"
+            },
+            "development": {
+              "buildTarget": "control-taller:build:development"
+            }
           },
           "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "polyfills": ["zone.js", "zone.js/testing"],
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
-            "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.scss"],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets"
+            ],
+            "styles": [
+              "@fontsource/roboto/latin-300.css",
+              "@fontsource/roboto/latin-400.css",
+              "@fontsource/roboto/latin-500.css",
+              "@fontsource/roboto/latin-700.css",
+              "material-icons/iconfont/filled.css",
+              "src/styles.scss"
+            ],
             "scripts": []
           }
         }

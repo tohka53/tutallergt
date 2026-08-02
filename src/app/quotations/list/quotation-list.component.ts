@@ -12,6 +12,7 @@ import { AuthorizationService } from '../../core/services/authorization.service'
 import { Client, Quotation, QuotationStatus, Vehicle } from '../../models';
 import { basePath } from '../../shared/nav.util';
 import { QUOTATION_STATUS_CHIP, QUOTATION_STATUS_LABELS } from '../../shared/status.util';
+import { MobileSortOption } from '../../shared/components/mobile-sort/mobile-sort.component';
 
 @Component({
   selector: 'app-quotation-list',
@@ -38,6 +39,14 @@ export class QuotationListComponent implements OnInit, AfterViewInit {
   qLabel: Record<string, string> = QUOTATION_STATUS_LABELS;
   qChip: Record<string, string> = QUOTATION_STATUS_CHIP;
   statuses: QuotationStatus[] = ['draft', 'sent', 'converted', 'void'];
+
+  /** Ordenamiento para móvil (la cabecera de la tabla se oculta en pantallas pequeñas). */
+  sortOptions: MobileSortOption[] = [
+    { id: 'date', dir: 'desc', label: 'Fecha (más reciente)' },
+    { id: 'date', dir: 'asc', label: 'Fecha (más antigua)' },
+    { id: 'total', dir: 'desc', label: 'Total (mayor a menor)' },
+    { id: 'number', dir: 'asc', label: 'Número' },
+  ];
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;

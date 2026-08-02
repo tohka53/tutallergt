@@ -1,0 +1,133 @@
+/* ============================================================
+   Estructura común de los layouts (mecánico y portal del cliente).
+   Se incluye desde cada componente con:  @use '../shell' as shell;
+   ============================================================ */
+@mixin tc-shell() {
+  :host {
+    display: block;
+    height: 100vh;
+    height: 100dvh; /* evita el salto por la barra del navegador móvil */
+  }
+
+  .tc-shell { height: 100%; }
+
+  /* La columna de contenido es flex: barra fija arriba, área scrolleable abajo. */
+  mat-sidenav-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ---------- Menú lateral ---------- */
+  .tc-sidenav {
+    width: 250px;
+    background: var(--tc-black);
+    color: #fff;
+    border: none;
+    transition: width 0.2s ease;
+    padding-bottom: var(--tc-safe-bottom);
+  }
+  .tc-sidenav.collapsed { width: 72px; }
+
+  .tc-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 16px;
+    padding-top: calc(18px + var(--tc-safe-top));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .tc-brand img { height: 32px; width: 32px; object-fit: contain; flex: 0 0 auto; }
+  .tc-brand .logo-fallback {
+    height: 34px; width: 34px; border-radius: 8px; background: var(--tc-yellow);
+    color: var(--tc-black); display: grid; place-items: center; font-weight: 800;
+    flex: 0 0 auto;
+  }
+  .tc-brand .name {
+    font-weight: 700; font-size: 16px; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tc-brand .close-nav { margin-left: auto; color: #cfd4da; flex: 0 0 auto; }
+
+  .tc-nav { padding: 8px; }
+  .tc-nav a {
+    display: flex; align-items: center; gap: 14px; color: #cfd4da;
+    padding: 11px 14px; border-radius: 10px; text-decoration: none; margin-bottom: 2px;
+    white-space: nowrap; overflow: hidden; min-height: 46px;
+  }
+  .tc-nav a mat-icon { flex: 0 0 auto; }
+  .tc-nav a:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+  .tc-nav a.active { background: var(--tc-yellow); color: var(--tc-black); font-weight: 600; }
+
+  /* ---------- Barra superior ---------- */
+  .tc-header {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: var(--tc-header-h);
+    padding: 0 16px;
+    padding-top: var(--tc-safe-top);
+    padding-left: max(16px, var(--tc-safe-left));
+    padding-right: max(16px, var(--tc-safe-right));
+    background: #fff;
+    color: var(--tc-text);
+    border-bottom: 2px solid var(--tc-blue);
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+  .tc-header .title {
+    font-weight: 600; font-size: 18px; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tc-header .demo-badge { flex: 0 0 auto; }
+
+  .tc-user {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    background: none; border: none; padding: 6px 8px; border-radius: 10px;
+    color: inherit; font: inherit; text-align: left; max-width: 260px;
+  }
+  .tc-user:hover { background: var(--tc-bg-gray); }
+  .tc-user .u-text { display: flex; flex-direction: column; min-width: 0; }
+  .tc-user .u-name {
+    font-weight: 600; font-size: 14px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tc-user .u-role { font-size: 11px; color: var(--tc-muted); white-space: nowrap; }
+
+  .menu-user-head {
+    display: none;
+    padding: 10px 16px 8px;
+    border-bottom: 1px solid var(--tc-border);
+  }
+  .menu-user-head .u-name { font-weight: 700; font-size: 14px; }
+  .menu-user-head .u-role { font-size: 12px; color: var(--tc-muted); }
+
+  /* ---------- Área de contenido ---------- */
+  .tc-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    background: var(--tc-bg-gray);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ---------- Tablet / móvil ---------- */
+  @media (max-width: 1023.98px) {
+    .tc-sidenav { width: min(84vw, 300px); }
+    .tc-sidenav.collapsed { width: min(84vw, 300px); }
+  }
+
+  @media (max-width: 700px) {
+    .tc-header { gap: 4px; padding-left: max(8px, var(--tc-safe-left)); padding-right: max(8px, var(--tc-safe-right)); }
+    .tc-header .title { font-size: 16px; }
+    .tc-header .demo-badge { display: none; }
+    .tc-user { padding: 0; min-width: 44px; min-height: 44px; justify-content: center; }
+    .tc-user .u-text, .tc-user .u-caret { display: none; }
+    .menu-user-head { display: block; }
+  }
+
+  @media (max-width: 360px) {
+    .tc-header .title { font-size: 15px; }
+  }
+}

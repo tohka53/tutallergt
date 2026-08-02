@@ -9,7 +9,10 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox",
-    "test:headless": "ng test --watch=false --browsers=ChromeHeadless"
+    "test:headless": "ng test --watch=false --browsers=ChromeHeadless",
+    "serve:dist": "node tools/serve-dist.cjs",
+    "audit:visual": "node tools/visual-audit.cjs",
+    "audit:dialogs": "node tools/dialog-audit.cjs"
   },
   "private": true,
   "dependencies": {
@@ -23,8 +26,10 @@
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
+    "@fontsource/roboto": "^5.3.0",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
+    "material-icons": "^1.13.14",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"

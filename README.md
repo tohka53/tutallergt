@@ -223,7 +223,56 @@ credenciales/bucket del almacenamiento de archivos (Supabase/Firebase/S3).
 
 ---
 
-## 11. Verificación realizada
+## 11. Diseño adaptable (móvil, tablet y escritorio)
+
+La interfaz funciona en cualquier tamaño de pantalla. Puntos de corte usados:
+
+| Ancho | Comportamiento |
+|-------|----------------|
+| `< 1024px` | El menú lateral pasa a ser un **cajón superpuesto** con botón de hamburguesa; se cierra solo al navegar. |
+| `< 900px` | Cada fila de tabla se convierte en una **tarjeta legible**; los formularios pasan a una columna; los diálogos ocupan casi todo el ancho. |
+| `640px – 900px` | Tablet en vertical: **dos tarjetas por fila** y formularios en dos columnas. |
+| `< 400px` | Tipografías y espaciados compactos. |
+
+Detalles de implementación:
+
+- `src/styles.scss` concentra las utilidades responsivas (`.tc-page`, `.tc-cards`,
+  `.tc-kv`, `.tc-actions`) y las media queries globales.
+- `src/app/core/services/responsive.service.ts` es el punto único de verdad de los
+  puntos de corte en TypeScript (`BreakpointObserver`). **Si cambias un valor ahí,
+  cámbialo también en `styles.scss`.**
+- Las tablas de Angular Material se convierten en tarjetas con CSS: cada `<td>` lleva
+  `data-label="..."` (la etiqueta que se muestra en móvil) y la celda principal lleva
+  `class="tc-cell-title"`. La columna de acciones lleva `class="tc-cell-actions"`.
+- Como en móvil se oculta la cabecera de la tabla, el componente `<app-mobile-sort>`
+  ofrece el ordenamiento en un desplegable.
+- Se respetan las **áreas seguras** de iOS/Android (`env(safe-area-inset-*)`), se usa
+  `100dvh` en lugar de `100vh` y los campos usan `font-size: 16px` en móvil para
+  evitar el zoom automático de iOS.
+
+### Tipografías locales
+
+Roboto y Material Icons ya **no se cargan desde Google Fonts**: se sirven desde los
+paquetes `@fontsource/roboto` y `material-icons` (ver `angular.json` → `styles`). Así la
+app funciona sin conexión y los iconos nunca se ven como texto suelto (`more_vert`,
+`menu`, …) cuando la red falla.
+
+### Auditoría visual automatizada
+
+En `tools/` hay dos scripts que recorren todas las pantallas en varios tamaños,
+detectan desbordes horizontales y errores de consola, y guardan capturas en `shots/`:
+
+```bash
+npm i -D playwright && npx playwright install chromium   # sólo la primera vez
+npm run build
+npm run serve:dist        # en otra terminal
+npm run audit:visual      # capturas de todas las pantallas
+npm run audit:dialogs     # capturas de los diálogos en móvil
+```
+
+---
+
+## 12. Verificación realizada
 
 - `ng build` (**producción**, por defecto): **sin errores ni advertencias**.
 - `ng build --configuration development`: correcto.
@@ -231,3 +280,9 @@ credenciales/bucket del almacenamiento de archivos (Supabase/Firebase/S3).
 - Lógica de negocio ejecutada de forma aislada (subtotales, impuestos, total, total en
   letras): **12/12 aserciones correctas**.
 - `npm test` requiere un navegador Chrome/Chromium instalado localmente.
+- Auditoría visual en **375px (iPhone SE), 390px (iPhone 14), 768px (tablet) y 1440px
+  (escritorio)**, más 320px, 844px en horizontal y 1920px: **sin desbordes horizontales
+  ni errores de consola**.
+- Diálogos verificados en móvil (confirmación, catálogo, vista previa del PDF,
+  compartir, pasar a servicio, cambio de estado): **todos caben en pantalla**.
+- `npm test`: **32/32 pruebas correctas**.

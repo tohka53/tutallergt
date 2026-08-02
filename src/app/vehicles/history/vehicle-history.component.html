@@ -9,16 +9,18 @@
   </div>
 
   <ng-container *ngIf="!loading">
-    <mat-card class="tc-card" *ngIf="vehicle" style="margin-bottom:16px;">
+    <mat-card class="tc-card veh-card" *ngIf="vehicle">
       <strong>{{ vehicle.brand }} {{ vehicle.model }} {{ vehicle.year }}</strong> · Placa {{ vehicle.plate }}
     </mat-card>
 
     <mat-card class="tc-card">
-      <mat-button-toggle-group [formControl]="kindFilter" style="margin-bottom:16px;" hideSingleSelectionIndicator>
-        <mat-button-toggle value="all">Todo</mat-button-toggle>
-        <mat-button-toggle value="quotation">Cotizaciones</mat-button-toggle>
-        <mat-button-toggle value="service">Servicios</mat-button-toggle>
-      </mat-button-toggle-group>
+      <div class="filters">
+        <mat-button-toggle-group [formControl]="kindFilter" hideSingleSelectionIndicator>
+          <mat-button-toggle value="all">Todo</mat-button-toggle>
+          <mat-button-toggle value="quotation">Cotizaciones</mat-button-toggle>
+          <mat-button-toggle value="service">Servicios</mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
 
       <div *ngIf="!events.length" class="tc-empty">
         <mat-icon>history</mat-icon><p>Sin registros en el historial.</p>
@@ -28,33 +30,20 @@
         <a *ngFor="let e of events" class="tl-item" [routerLink]="linkFor(e)">
           <div class="tl-dot" [class.service]="e.kind === 'service'"></div>
           <div class="tl-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div class="tl-head">
               <strong>{{ e.title }}</strong>
               <span class="tc-chip" [ngClass]="e.statusChip">{{ e.statusLabel }}</span>
             </div>
-            <div class="tc-muted" style="font-size:12.5px;">
+            <div class="tc-muted tl-sub">
               {{ e.date | date:'dd/MM/yyyy' }} ·
               <span *ngIf="e.mileage">{{ e.mileage.toLocaleString('es-GT') }} km · </span>
               {{ e.total | gtq }}
             </div>
-            <div *ngIf="e.diagnosis" class="tc-muted" style="font-size:12.5px; margin-top:4px;">
-              Diagnóstico: {{ e.diagnosis }}
-            </div>
-            <div *ngIf="e.mechanic" class="tc-muted" style="font-size:12px;">Mecánico: {{ e.mechanic }}</div>
+            <div *ngIf="e.diagnosis" class="tc-muted tl-sub">Diagnóstico: {{ e.diagnosis }}</div>
+            <div *ngIf="e.mechanic" class="tc-muted tl-sub">Mecánico: {{ e.mechanic }}</div>
           </div>
         </a>
       </div>
     </mat-card>
   </ng-container>
 </div>
-
-<style>
-  .timeline { position: relative; padding-left: 8px; }
-  .tl-item { display: flex; gap: 14px; padding: 6px 0 18px; text-decoration: none; color: inherit; position: relative; }
-  .tl-item:not(:last-child)::before {
-    content: ''; position: absolute; left: 6px; top: 18px; bottom: 0; width: 2px; background: var(--tc-border);
-  }
-  .tl-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--tc-blue); margin-top: 4px; flex: 0 0 auto; z-index: 1; }
-  .tl-dot.service { background: var(--tc-yellow); }
-  .tl-content { flex: 1; background: var(--tc-bg-gray); border-radius: 10px; padding: 12px 14px; }
-</style>

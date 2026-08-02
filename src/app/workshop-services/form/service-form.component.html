@@ -101,18 +101,19 @@
 
       <div formArrayName="items" style="margin-top:12px;">
         <div class="item-row" *ngFor="let it of items.controls; let i = index" [formGroupName]="i">
-          <mat-form-field>
+          <mat-form-field class="f-type">
             <mat-label>Tipo</mat-label>
             <mat-select formControlName="type">
               <mat-option *ngFor="let t of itemTypes" [value]="t.value">{{ t.label }}</mat-option>
             </mat-select>
           </mat-form-field>
-          <mat-form-field><mat-label>Descripción</mat-label><input matInput formControlName="name" /></mat-form-field>
-          <mat-form-field><mat-label>Cant.</mat-label><input matInput type="number" formControlName="quantity" /></mat-form-field>
-          <mat-form-field><mat-label>P. unit.</mat-label><input matInput type="number" formControlName="unitPrice" /></mat-form-field>
-          <mat-form-field><mat-label>Desc.</mat-label><input matInput type="number" formControlName="discount" /></mat-form-field>
-          <div class="item-sub">{{ lineSubtotal(it) | gtq }}</div>
-          <button mat-icon-button color="warn" type="button" (click)="removeItem(i)"><mat-icon>delete</mat-icon></button>
+          <mat-form-field class="f-name"><mat-label>Descripción</mat-label><input matInput formControlName="name" /></mat-form-field>
+          <mat-form-field class="f-qty"><mat-label>Cant.</mat-label><input matInput type="number" inputmode="numeric" formControlName="quantity" /></mat-form-field>
+          <mat-form-field class="f-price"><mat-label>P. unit.</mat-label><input matInput type="number" inputmode="decimal" formControlName="unitPrice" /></mat-form-field>
+          <mat-form-field class="f-disc"><mat-label>Desc.</mat-label><input matInput type="number" inputmode="decimal" formControlName="discount" /></mat-form-field>
+          <div class="item-sub"><span class="lbl">Subtotal</span>{{ lineSubtotal(it) | gtq }}</div>
+          <button class="item-del" mat-icon-button color="warn" type="button" (click)="removeItem(i)"
+                  aria-label="Eliminar artículo"><mat-icon>delete</mat-icon></button>
         </div>
       </div>
       <button mat-stroked-button type="button" (click)="addManualItem()" style="margin-top:8px;">
@@ -121,7 +122,7 @@
       <div class="conv-total">Total: {{ total | gtq }}</div>
     </mat-card>
 
-    <div style="display:flex; justify-content:flex-end; gap:10px; padding-bottom:24px;">
+    <div class="tc-actions tc-actions--end tc-actions--stack" style="padding-bottom:24px;">
       <button mat-button type="button" (click)="cancel()">Cancelar</button>
       <button mat-raised-button class="tc-btn-primary" type="button" (click)="save()" [disabled]="saving">
         <mat-icon>save</mat-icon> {{ saving ? 'Guardando...' : 'Guardar servicio' }}

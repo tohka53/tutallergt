@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 import { Quotation, QuotationItem, User, WorkshopServiceItem } from '../../models';
 
 const users: User[] = [
-  { id: 'user-mechanic', email: 'm@demo.com', displayName: 'Carlos', role: 'mechanic', active: true, createdAt: '2024-01-01' },
+  { id: 'user-mechanic', email: 'mecanico@demo.com', displayName: 'Carlos', role: 'mechanic', active: true, createdAt: '2024-01-01' },
 ];
 
 function sampleItems(): QuotationItem[] {
@@ -27,7 +27,7 @@ describe('WorkshopServiceService (conversión y estados)', () => {
     services = TestBed.inject(WorkshopServiceService);
     quotations = TestBed.inject(QuotationService);
     auth = TestBed.inject(AuthService);
-    auth.login('m@demo.com', 'Demo123!').subscribe(() => done());
+    auth.login('mecanico@demo.com', 'Demo123!').subscribe(() => done());
   });
 
   function createQuotation(): Promise<Quotation> {
