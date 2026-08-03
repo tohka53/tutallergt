@@ -116,6 +116,41 @@
   @media (max-width: 1023.98px) {
     .tc-sidenav { width: min(84vw, 300px); }
     .tc-sidenav.collapsed { width: min(84vw, 300px); }
+
+    /* En escritorio el scroll ocurre dentro de `.tc-content`, con el shell
+       clavado a la altura de la ventana. En móvil ese patrón se rompe:
+       - la barra de direcciones del navegador nunca se colapsa,
+       - al abrir el teclado el navegador desplaza el DOCUMENTO, no el
+         contenedor interno, así que el campo enfocado queda tapado,
+       - el desplazamiento por inercia se traba al llegar a los bordes.
+       Por eso en móvil devolvemos el scroll al documento: el shell crece con
+       su contenido y la barra superior se queda pegada arriba. */
+    :host { height: auto; min-height: 100vh; min-height: 100dvh; }
+
+    .tc-shell,
+    .mat-drawer-container { min-height: 100dvh; height: auto; overflow: visible; }
+
+    mat-sidenav-content,
+    .mat-drawer-content {
+      height: auto;
+      min-height: 100dvh;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tc-header {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+
+    .tc-content {
+      flex: 1 1 auto;
+      overflow: visible;
+      /* el ancho lo sigue acotando el documento */
+      overflow-x: clip;
+    }
   }
 
   @media (max-width: 700px) {

@@ -79,6 +79,19 @@ body {
   overflow-x: hidden;
 }
 
+/* En móvil el scroll lo hace el DOCUMENTO, no un contenedor interno (ver la
+   explicación en `core/layouts/_shell.scss`). Para eso el alto debe poder
+   crecer: con `height: 100%` el body queda clavado al alto de la ventana.
+   Se usa `overflow-x: clip` en vez de `hidden` porque `hidden` convierte al
+   body en contenedor de scroll y vuelve a robarle el desplazamiento al
+   documento — que es justo lo que rompe el teclado en iOS y Android. */
+@media (max-width: 1023.98px) {
+  html, body { height: auto; min-height: 100%; }
+  body { overflow-x: clip; }
+  /* que la barra superior pegajosa no tape el campo al que saltamos */
+  html { scroll-padding-top: calc(var(--tc-header-h) + 12px); }
+}
+
 * { box-sizing: border-box; }
 
 /* Nada debe desbordar horizontalmente en móvil */

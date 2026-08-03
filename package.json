@@ -5,6 +5,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:lan": "ng serve --host 0.0.0.0 --disable-host-check",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
@@ -12,6 +13,7 @@
     "test:headless": "ng test --watch=false --browsers=ChromeHeadless",
     "serve:dist": "node tools/serve-dist.cjs",
     "audit:visual": "node tools/visual-audit.cjs",
+    "audit:mobile": "node tools/mobile-scroll-audit.cjs",
     "audit:dialogs": "node tools/dialog-audit.cjs"
   },
   "private": true,
