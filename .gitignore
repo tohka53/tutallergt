@@ -1,0 +1,42 @@
+# Dependencias — NUNCA se versionan: traen binarios nativos del sistema
+# donde se instalaron (macOS) y rompen la compilación en el servidor (Linux).
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# Compilados
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Caché de Angular
+/.angular/cache
+.sass-cache
+
+# Pruebas y auditorías
+/coverage
+/shots
+/libpeerconnection.log
+testem.log
+
+# Editores
+/.idea
+/.vscode/*
+!/.vscode/extensions.json
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.swp
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Entorno
+.env
+.env.local
+.vercel
