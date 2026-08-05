@@ -26,9 +26,13 @@
       </div>
       <a *ngFor="let a of activeServices" class="status-item"
          [routerLink]="['/portal/services', a.service.id]" style="text-decoration:none; color:inherit;">
-        <div>
+        <div class="s-main">
           <div class="s-title">{{ a.vehicle?.brand }} {{ a.vehicle?.model }} · {{ a.vehicle?.plate }}</div>
           <div class="s-sub">Orden {{ a.service.number }} · Ingreso {{ a.service.entryDate | date:'dd/MM/yyyy' }}</div>
+          <div class="s-photos" *ngIf="a.photoCount">
+            <mat-icon>photo_camera</mat-icon>
+            {{ a.photoCount }} foto{{ a.photoCount > 1 ? 's' : '' }} de evidencia
+          </div>
         </div>
         <span class="tc-chip" [ngClass]="sChip[a.service.status]">{{ sLabel[a.service.status] }}</span>
       </a>

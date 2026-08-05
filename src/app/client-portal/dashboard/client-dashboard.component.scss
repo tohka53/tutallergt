@@ -7,8 +7,14 @@
   padding: 12px 0; border-bottom: 1px solid var(--tc-border); min-height: 48px;
 }
 .status-item:last-child { border-bottom: none; }
+.status-item .s-main { min-width: 0; }
 .status-item .s-title { font-weight: 600; }
 .status-item .s-sub { font-size: 12px; color: var(--tc-muted); }
+.status-item .s-photos {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;
+  font-size: 12px; font-weight: 600; color: var(--tc-blue);
+}
+.status-item .s-photos mat-icon { font-size: 16px; width: 16px; height: 16px; }
 h2.section { font-size: 16px; margin: 0 0 12px; }
 
 @media (max-width: 900px) {

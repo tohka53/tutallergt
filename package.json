@@ -14,7 +14,8 @@
     "serve:dist": "node tools/serve-dist.cjs",
     "audit:visual": "node tools/visual-audit.cjs",
     "audit:mobile": "node tools/mobile-scroll-audit.cjs",
-    "audit:dialogs": "node tools/dialog-audit.cjs"
+    "audit:dialogs": "node tools/dialog-audit.cjs",
+    "audit:photos": "node tools/photos-e2e.cjs"
   },
   "private": true,
   "dependencies": {

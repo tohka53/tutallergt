@@ -69,7 +69,8 @@ npm run test:ci       # headless, sin sandbox (CI / contenedores)
 Las pruebas cubren: cálculo de subtotales, impuestos y total; total en letras;
 login mock y roles; restricción de eliminación de vehículos; acceso del cliente
 solo a sus vehículos; validación de archivos (MIME + tamaño); numeración
-correlativa; y conversión de cotización a servicio con prevención de duplicados.
+correlativa; conversión de cotización a servicio con prevención de duplicados; y
+evidencia fotográfica (formatos aceptados, tamaño máximo y tope de 3 por servicio).
 
 ---
 
@@ -218,8 +219,9 @@ credenciales/bucket del almacenamiento de archivos (Supabase/Firebase/S3).
 | 11   | Entrega simulada por correo y WhatsApp | ✅ |
 | 12   | Conversión de cotización a servicio (sin duplicados) | ✅ |
 | 13   | Servicios e historial por vehículo | ✅ |
-| 14   | Pruebas unitarias | ✅ |
-| 15   | `ng build` sin errores | ✅ |
+| 14   | Evidencia fotográfica del servicio (mecánico sube, cliente ve) | ✅ |
+| 15   | Pruebas unitarias | ✅ |
+| 16   | `ng build` sin errores | ✅ |
 
 ---
 
@@ -268,7 +270,15 @@ npm run build
 npm run serve:dist        # en otra terminal
 npm run audit:visual      # capturas de todas las pantallas
 npm run audit:dialogs     # capturas de los diálogos en móvil
+npm run audit:mobile      # scroll, teclado y menú lateral en móvil
+npm run audit:photos      # recorrido completo de la evidencia fotográfica
 ```
+
+`audit:photos` hace el recorrido de punta a punta: entra como mecánico, sube fotos,
+comprueba que se reducen a 1600 px, edita la nota, abre el visor, verifica el tope de 3
+y el rechazo de formatos; luego entra como cliente y comprueba que ve las fotos pero no
+los controles de edición; por último elimina el servicio y confirma que no quedan
+binarios huérfanos en IndexedDB.
 
 ---
 
@@ -285,4 +295,6 @@ npm run audit:dialogs     # capturas de los diálogos en móvil
   ni errores de consola**.
 - Diálogos verificados en móvil (confirmación, catálogo, vista previa del PDF,
   compartir, pasar a servicio, cambio de estado): **todos caben en pantalla**.
-- `npm test`: **32/32 pruebas correctas**.
+- `npm test`: **40/40 pruebas correctas**.
+- `npm run audit:photos`: **41/41 comprobaciones correctas** (mecánico, cliente, 360/390/768 px
+  y borrado en cascada).

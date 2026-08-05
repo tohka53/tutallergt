@@ -17,6 +17,7 @@ yarn-error.log
 # Pruebas y auditorías
 /coverage
 /shots
+/.audit-photos
 /libpeerconnection.log
 testem.log
 

@@ -1,0 +1,88 @@
+:host { display: block; }
+
+.photos-card { margin-bottom: 16px; }
+
+.photos-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.photos-head h3 { margin: 0; font-size: 15px; }
+.ph-sub { margin: 2px 0 0; font-size: 12.5px; }
+.ph-count { flex: 0 0 auto; }
+
+.ph-empty { padding: 28px 12px; }
+.ph-empty p { margin: 8px 0 14px; }
+
+/* En escritorio caben las 3 en fila; en móvil la foto ocupa el ancho completo,
+   que es lo que hace falta para juzgar el estado de una pieza. */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+}
+
+.photo {
+  margin: 0; min-width: 0;
+  border: 1px solid var(--tc-border); border-radius: 12px;
+  overflow: hidden; background: #fff;
+  display: flex; flex-direction: column;
+}
+
+/* La miniatura recorta a 4:3 para que todas las tarjetas midan igual, aunque el
+   mecánico mezcle fotos horizontales y verticales. La imagen va en posición
+   absoluta: si se dejara en el flujo, su alto natural estiraría el botón y
+   `aspect-ratio` quedaría sin efecto. */
+.thumb {
+  position: relative; display: block; width: 100%; height: auto; padding: 0;
+  border: none; background: #2b2b2b; cursor: zoom-in; line-height: 0;
+  aspect-ratio: 4 / 3; overflow: hidden;
+}
+.thumb img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.thumb-fallback {
+  position: absolute; inset: 0; display: grid; place-items: center; color: #9aa3ab;
+}
+.thumb-zoom {
+  position: absolute; right: 8px; bottom: 8px;
+  background: rgba(17, 17, 17, 0.62); color: #fff;
+  border-radius: 999px; width: 30px; height: 30px;
+  display: grid; place-items: center; line-height: 0;
+}
+.thumb-zoom mat-icon { font-size: 19px; width: 19px; height: 19px; }
+.thumb:focus-visible { outline: 3px solid var(--tc-yellow); outline-offset: -3px; }
+
+.photo-meta {
+  flex: 1 1 auto; padding: 10px 12px 12px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.caption-field { margin-bottom: -12px; }
+.caption-text { font-weight: 600; font-size: 14px; }
+.photo-sub { font-size: 12px; }
+
+/* `margin-top: auto` alinea abajo los botones de todas las tarjetas de la fila,
+   aunque una nota ocupe dos líneas y otra ninguna. */
+.photo-actions { display: flex; gap: 8px; margin-top: auto; padding-top: 10px; flex-wrap: wrap; }
+.photo-actions > * { flex: 1 1 auto; }
+
+.photos-foot {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 16px;
+}
+.foot-hint { font-size: 12.5px; }
+.ph-hint { font-size: 12px; margin: 10px 0 0; }
+
+/* ---------- Móvil ---------- */
+@media (max-width: 900px) {
+  .photo-grid { grid-template-columns: 1fr; gap: 12px; }
+  .thumb { aspect-ratio: 3 / 2; }
+  .photos-foot > button { width: 100%; }
+  .foot-hint { flex: 1 1 100%; }
+  .photo-actions > * { min-height: 44px; }
+}
+
+/* En tablet vertical sí caben dos por fila, igual que las tablas-tarjeta. */
+@media (min-width: 640px) and (max-width: 900px) {
+  .photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .photos-foot > button { width: auto; }
+}

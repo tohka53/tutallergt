@@ -1,0 +1,61 @@
+<h2 mat-dialog-title>
+  Evidencia
+  <span class="tc-muted counter" *ngIf="photos.length > 1">
+    · {{ index + 1 }} de {{ photos.length }}
+  </span>
+</h2>
+
+<mat-dialog-content>
+  <div class="viewer-toolbar">
+    <span class="name">{{ current?.caption || current?.fileName }}</span>
+    <button mat-icon-button (click)="zoomOut()" matTooltip="Alejar" aria-label="Alejar">
+      <mat-icon>zoom_out</mat-icon>
+    </button>
+    <button mat-icon-button (click)="resetZoom()" matTooltip="Restablecer" aria-label="Restablecer zoom">
+      <mat-icon>center_focus_strong</mat-icon>
+    </button>
+    <button mat-icon-button (click)="zoomIn()" matTooltip="Acercar" aria-label="Acercar">
+      <mat-icon>zoom_in</mat-icon>
+    </button>
+    <button mat-raised-button class="tc-btn-secondary" (click)="download()"
+            [disabled]="loading || !currentUrl">
+      <mat-icon>download</mat-icon> Descargar
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="tc-loading">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+  </div>
+  <p *ngIf="error" class="tc-muted">{{ error }}</p>
+
+  <!-- Las flechas viven FUERA de .viewer-body: ese contenedor puede desplazarse
+       cuando la imagen ampliada no cabe, y arrastraría con él a cualquier hijo
+       posicionado, dejando la flecha anterior fuera de la pantalla. -->
+  <div class="viewer-stage" *ngIf="!loading && !error">
+    <div class="viewer-body">
+      <img *ngIf="currentUrl" [src]="currentUrl"
+           [style.transform]="'scale(' + zoom + ')'"
+           [alt]="current?.caption || 'Evidencia del servicio'" />
+    </div>
+
+    <button *ngIf="photos.length > 1" mat-mini-fab class="nav prev"
+            (click)="prev()" aria-label="Foto anterior">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <button *ngIf="photos.length > 1" mat-mini-fab class="nav next"
+            (click)="next()" aria-label="Foto siguiente">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+
+  <div class="viewer-caption" *ngIf="current && !loading">
+    <div *ngIf="current.caption" class="cap">{{ current.caption }}</div>
+    <div class="tc-muted sub">
+      Subida por {{ current.uploadedByName }} · {{ current.uploadedAt | date:'dd/MM/yyyy HH:mm' }}
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

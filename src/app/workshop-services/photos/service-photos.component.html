@@ -1,0 +1,96 @@
+<mat-card class="tc-card photos-card">
+  <div class="photos-head">
+    <div class="ph-title">
+      <h3>Evidencia fotográfica</h3>
+      <p class="tc-muted ph-sub">Cómo se encontró la pieza antes de cambiarla.</p>
+    </div>
+    <!-- Al mecánico le importa el cupo; al cliente sólo cuántas fotos hay. -->
+    <span class="tc-chip tc-chip--muted ph-count" *ngIf="canEdit">{{ photos.length }} / {{ max }}</span>
+    <span class="tc-chip tc-chip--info ph-count" *ngIf="!canEdit && photos.length">
+      {{ photos.length }} foto{{ photos.length > 1 ? 's' : '' }}
+    </span>
+  </div>
+
+  <div *ngIf="uploading" class="tc-loading" style="padding:24px;">
+    <mat-progress-spinner mode="indeterminate" diameter="36"></mat-progress-spinner>
+  </div>
+
+  <ng-container *ngIf="!uploading">
+    <!-- Sin fotos -->
+    <div *ngIf="!photos.length" class="tc-empty ph-empty">
+      <mat-icon>photo_camera</mat-icon>
+      <p *ngIf="canEdit">Aún no has subido fotos de evidencia.</p>
+      <p *ngIf="!canEdit">El taller todavía no ha subido fotos de este trabajo.</p>
+      <button *ngIf="canEdit" mat-raised-button class="tc-btn-primary" (click)="fileInput.click()">
+        <mat-icon>add_a_photo</mat-icon> Subir fotos
+      </button>
+    </div>
+
+    <!-- Galería -->
+    <div *ngIf="photos.length" class="photo-grid">
+      <figure *ngFor="let p of photos; let i = index; trackBy: trackById" class="photo">
+        <button type="button" class="thumb" (click)="open(i)"
+                [attr.aria-label]="'Ampliar foto ' + (i + 1) + (p.caption ? ': ' + p.caption : '')">
+          <img *ngIf="urls[p.blobKey]" [src]="urls[p.blobKey]"
+               [alt]="p.caption || 'Evidencia ' + (i + 1)" loading="lazy" />
+          <span *ngIf="!urls[p.blobKey]" class="thumb-fallback">
+            <mat-icon>broken_image</mat-icon>
+          </span>
+          <span class="thumb-zoom"><mat-icon>zoom_in</mat-icon></span>
+        </button>
+
+        <figcaption class="photo-meta">
+          <ng-container *ngIf="canEdit; else readOnlyCaption">
+            <mat-form-field appearance="outline" class="caption-field tc-full">
+              <mat-label>Nota</mat-label>
+              <input matInput [value]="p.caption" maxlength="80"
+                     placeholder="Ej.: balatas al límite"
+                     (blur)="saveCaption(p, capInput.value)" #capInput />
+            </mat-form-field>
+          </ng-container>
+          <ng-template #readOnlyCaption>
+            <div class="caption-text" *ngIf="p.caption">{{ p.caption }}</div>
+          </ng-template>
+
+          <div class="tc-muted photo-sub" *ngIf="canEdit">
+            {{ p.uploadedAt | date:'dd/MM/yyyy HH:mm' }} · {{ p.size | fileSize }}
+          </div>
+          <div class="tc-muted photo-sub" *ngIf="!canEdit">
+            Tomada por el taller el {{ p.uploadedAt | date:'dd/MM/yyyy' }}
+          </div>
+
+          <div class="photo-actions">
+            <button mat-stroked-button (click)="open(i)">
+              <mat-icon>visibility</mat-icon> Ver
+            </button>
+            <button *ngIf="canEdit" mat-stroked-button color="warn" (click)="remove(p)">
+              <mat-icon>delete</mat-icon> Eliminar
+            </button>
+          </div>
+        </figcaption>
+      </figure>
+    </div>
+
+    <!-- Pie con el botón de carga -->
+    <div *ngIf="canEdit && photos.length" class="photos-foot">
+      <button mat-raised-button class="tc-btn-primary"
+              [disabled]="remaining === 0" (click)="fileInput.click()">
+        <mat-icon>add_a_photo</mat-icon>
+        {{ remaining === 0 ? 'Límite alcanzado' : 'Agregar foto' }}
+      </button>
+      <span class="tc-muted foot-hint">
+        {{ remaining === 0
+            ? 'Elimine una foto para poder subir otra.'
+            : 'Puede subir ' + remaining + ' foto(s) más.' }}
+      </span>
+    </div>
+
+    <p *ngIf="canEdit" class="tc-muted ph-hint">
+      JPG, PNG o WEBP. Máximo {{ maxUploadMb }} MB por foto; se reducen automáticamente
+      antes de guardarlas. Estas fotos son visibles para el cliente.
+    </p>
+  </ng-container>
+
+  <input #fileInput type="file" [accept]="accept" multiple
+         (change)="onFilesSelected($event)" hidden />
+</mat-card>

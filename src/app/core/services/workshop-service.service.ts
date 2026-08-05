@@ -7,6 +7,7 @@ import {
 import { StorageService } from './storage.service';
 import { uuid } from './id.util';
 import { AuthService } from './auth.service';
+import { ServicePhotoService } from './service-photo.service';
 import { computeItemSubtotal } from './quotation.service';
 
 export const SERVICE_STATUS_LABELS: Record<ServiceStatus, string> = {
@@ -29,6 +30,7 @@ export function computeServiceTotal(items: WorkshopServiceItem[]): number {
 export class WorkshopServiceService {
   private storage = inject(StorageService);
   private auth = inject(AuthService);
+  private photos = inject(ServicePhotoService);
   private readonly key = 'workshop-services';
   private readonly seqKey = 'service-seq';
   private subject = new BehaviorSubject<WorkshopService[]>(
@@ -146,6 +148,8 @@ export class WorkshopServiceService {
 
   delete(id: string): Observable<void> {
     this.persist(this.subject.value.filter((s) => s.id !== id));
-    return of(void 0).pipe(delay(120));
+    // Los binarios de la evidencia viven en IndexedDB: si no se borran aquí
+    // quedan huérfanos ocupando la cuota del navegador para siempre.
+    return this.photos.removeForService(id).pipe(delay(120));
   }
 }
