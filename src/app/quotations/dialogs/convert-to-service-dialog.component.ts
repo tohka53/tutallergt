@@ -3,7 +3,7 @@ import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Client, Quotation, Vehicle, WorkshopServiceItem } from '../../models';
 import { WorkshopServiceService, computeServiceTotal } from '../../core/services/workshop-service.service';
-import { QuotationService, computeItemSubtotal } from '../../core/services/quotation.service';
+import { QuotationService, computeItemCost, computeItemSubtotal } from '../../core/services/quotation.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { uuid } from '../../core/services/id.util';
 
@@ -52,6 +52,7 @@ export class ConvertToServiceDialogComponent {
       code: [data?.code ?? ''],
       name: [data?.name ?? '', Validators.required],
       quantity: [data?.quantity ?? 1, [Validators.required, Validators.min(0.01)]],
+      unitCost: [data?.unitCost ?? 0, [Validators.min(0)]],
       unitPrice: [data?.unitPrice ?? 0, [Validators.required, Validators.min(0)]],
       discount: [data?.discount ?? 0, [Validators.min(0)]],
     });
@@ -73,7 +74,12 @@ export class ConvertToServiceDialogComponent {
   private buildPayload(): WorkshopServiceItem[] {
     return this.items.controls.map((g) => {
       const v = g.getRawValue() as WorkshopServiceItem;
-      return { ...v, subtotal: computeItemSubtotal(v) };
+      const unitCost = v.type === 'labor' ? 0 : v.unitCost;
+      return {
+        ...v, unitCost,
+        subtotal: computeItemSubtotal(v),
+        costSubtotal: computeItemCost({ ...v, unitCost }),
+      };
     });
   }
 

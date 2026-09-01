@@ -1,52 +1,34 @@
 <div class="tc-page">
-  <div class="tc-page-header"><h1>Mi perfil</h1></div>
+  <div class="tc-page-header"><h1>Mis datos</h1></div>
 
   <div *ngIf="loading" class="tc-loading">
     <mat-progress-spinner mode="indeterminate" diameter="48"></mat-progress-spinner>
   </div>
 
-  <mat-card class="tc-card" *ngIf="!loading" style="max-width:720px;">
-    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
-      <div class="tc-form-grid">
-        <mat-form-field>
-          <mat-label>Nombres</mat-label>
-          <input matInput formControlName="firstName" />
-          <mat-error>Requerido.</mat-error>
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Apellidos</mat-label>
-          <input matInput formControlName="lastName" />
-          <mat-error>Requerido.</mat-error>
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>NIT / CF</mat-label>
-          <input matInput formControlName="taxId" />
-          <mat-error>Requerido.</mat-error>
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Teléfono</mat-label>
-          <input matInput formControlName="phone" />
-          <mat-error>Requerido.</mat-error>
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>WhatsApp</mat-label>
-          <input matInput formControlName="whatsapp" />
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Correo electrónico</mat-label>
-          <input matInput formControlName="email" type="email" />
-          <mat-error>Correo no válido.</mat-error>
-        </mat-form-field>
-        <mat-form-field class="tc-col-span-2">
-          <mat-label>Dirección</mat-label>
-          <input matInput formControlName="address" />
-        </mat-form-field>
-      </div>
-      <div class="tc-actions tc-actions--end tc-actions--stack" style="margin-top:8px;">
-        <button mat-raised-button class="tc-btn-primary" type="submit" [disabled]="saving">
-          <mat-icon>save</mat-icon> {{ saving ? 'Guardando...' : 'Guardar cambios' }}
-        </button>
-      </div>
-    </form>
+  <mat-card class="tc-card" *ngIf="!loading && client" style="max-width:720px;">
+    <div class="tc-form-grid">
+      <div class="tc-kv"><span class="k">Nombre</span><span class="v">{{ client.firstName }} {{ client.lastName }}</span></div>
+      <div class="tc-kv"><span class="k">NIT / CF</span><span class="v">{{ client.taxId || 'CF' }}</span></div>
+      <div class="tc-kv"><span class="k">Teléfono</span><span class="v">{{ client.phone }}</span></div>
+      <div class="tc-kv"><span class="k">WhatsApp</span><span class="v">{{ client.whatsapp || client.phone }}</span></div>
+      <div class="tc-kv"><span class="k">Correo</span><span class="v">{{ client.email || '—' }}</span></div>
+      <div class="tc-kv tc-col-span-2"><span class="k">Dirección</span><span class="v">{{ client.address || '—' }}</span></div>
+    </div>
+
+    <p class="tc-muted" style="margin:18px 0 10px; font-size:13px;">
+      Tu número de teléfono es con lo que entras aquí, por eso sólo {{ settings.current.name }}
+      puede cambiarlo. Si algún dato está mal, avísales.
+    </p>
+
+    <a mat-stroked-button *ngIf="whatsappTaller" [href]="whatsappTaller" target="_blank" rel="noopener">
+      <mat-icon>chat</mat-icon> Escribirle al taller
+    </a>
+  </mat-card>
+
+  <mat-card class="tc-card" *ngIf="!loading && !client">
+    <div class="tc-empty">
+      <mat-icon>person_off</mat-icon>
+      <p>No pudimos cargar tus datos. Vuelve a entrar con tu número.</p>
+    </div>
   </mat-card>
 </div>

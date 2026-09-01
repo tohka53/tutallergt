@@ -27,6 +27,16 @@
           </a>
         </div>
       </div>
+      <!-- Acceso al portal: el teléfono es la credencial, así que se muestra
+           aquí mismo si el cliente ya puede entrar o qué le falta. -->
+      <div class="acceso" [class.ok]="puedeEntrar">
+        <mat-icon>{{ puedeEntrar ? 'lock_open' : 'lock' }}</mat-icon>
+        <span *ngIf="puedeEntrar">
+          Puede entrar al portal con su teléfono <strong>{{ client.phone }}</strong>, sin contraseña.
+        </span>
+        <span *ngIf="!puedeEntrar">No puede entrar al portal. {{ motivoSinAcceso }}</span>
+      </div>
+
       <mat-divider style="margin:14px 0;"></mat-divider>
       <div class="tc-form-grid">
         <div class="tc-kv"><span class="k">NIT / CF</span><span class="v">{{ client.taxId }}</span></div>

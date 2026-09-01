@@ -1,0 +1,147 @@
+<div class="tc-page">
+  <div class="tc-page-header">
+    <h1>Métricas del taller</h1>
+  </div>
+
+  <p class="tc-muted intro">
+    Cuenta las cotizaciones que el cliente aceptó o que ya pasaron a orden de servicio,
+    por la fecha en que se aceptaron.
+  </p>
+
+  <!-- Selector de período -->
+  <div class="periodos">
+    <button type="button" class="periodo" *ngFor="let r of rangos"
+            [class.active]="r.clave === rangoActivo.clave" (click)="seleccionar(r)">
+      {{ r.etiqueta }}
+    </button>
+  </div>
+
+  <!-- Tarjetas principales -->
+  <div class="kpi-grid">
+    <mat-card class="tc-card kpi kpi--main">
+      <div class="k">Vehículos trabajados</div>
+      <div class="v">{{ resumen.vehiculos }}</div>
+      <div class="sub">
+        {{ resumen.trabajos }} cotización(es) aceptada(s)
+        <ng-container *ngIf="variacion(resumen.vehiculos, comparacion?.vehiculos ?? 0) as dv">
+          <span class="delta" [class.up]="dv > 0" [class.down]="dv < 0">
+            {{ dv > 0 ? '+' : '' }}{{ dv }}%
+          </span>
+        </ng-container>
+      </div>
+    </mat-card>
+
+    <mat-card class="tc-card kpi">
+      <div class="k">Cobrado a clientes</div>
+      <div class="v">{{ resumen.ingreso | gtq }}</div>
+      <div class="sub">Promedio {{ resumen.promedio | gtq }} por vehículo</div>
+    </mat-card>
+
+    <mat-card class="tc-card kpi">
+      <div class="k">Gastado en repuestos</div>
+      <div class="v cost">{{ resumen.gasto | gtq }}</div>
+      <div class="sub">La mano de obra no cuenta como gasto</div>
+    </mat-card>
+
+    <mat-card class="tc-card kpi kpi--profit">
+      <div class="k">Ganancia</div>
+      <div class="v" [class.gain]="resumen.ganancia > 0" [class.loss]="resumen.ganancia < 0">
+        {{ resumen.ganancia | gtq }}
+      </div>
+      <div class="sub">
+        Margen {{ resumen.margen }}%
+        <ng-container *ngIf="variacion(resumen.ganancia, comparacion?.ganancia ?? 0) as dg">
+          <span class="delta" [class.up]="dg > 0" [class.down]="dg < 0">
+            {{ dg > 0 ? '+' : '' }}{{ dg }}% vs. período anterior
+          </span>
+        </ng-container>
+      </div>
+    </mat-card>
+  </div>
+
+  <div class="charts">
+    <!-- Ganancia por mes -->
+    <mat-card class="tc-card">
+      <div class="chart-head">
+        <h2 class="section">Ganancia por mes</h2>
+        <div class="switch">
+          <button type="button" [class.active]="mesesGrafica === 6" (click)="cambiarMeses(6)">6 meses</button>
+          <button type="button" [class.active]="mesesGrafica === 12" (click)="cambiarMeses(12)">12 meses</button>
+        </div>
+      </div>
+      <div class="col-chart">
+        <div class="col" *ngFor="let p of serieMeses"
+             [matTooltip]="p.resumen.vehiculos + ' vehículo(s) · ganancia ' + (p.resumen.ganancia | gtq)">
+          <span class="c-val">{{ p.resumen.ganancia | gtq }}</span>
+          <div class="c-bar" [style.height.%]="altura(p.resumen.ganancia, maxGanancia(serieMeses))"></div>
+          <span class="c-label">{{ p.etiqueta }}</span>
+        </div>
+      </div>
+    </mat-card>
+
+    <!-- Vehículos por día de esta semana -->
+    <mat-card class="tc-card">
+      <h2 class="section">Vehículos esta semana</h2>
+      <div class="col-chart week">
+        <div class="col" *ngFor="let p of serieDias"
+             [matTooltip]="p.resumen.vehiculos + ' vehículo(s) · ' + (p.resumen.ganancia | gtq)">
+          <span class="c-val">{{ p.resumen.vehiculos }}</span>
+          <div class="c-bar blue" [style.height.%]="altura(p.resumen.vehiculos, maxVehiculos(serieDias))"></div>
+          <span class="c-label">{{ p.etiqueta }}</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Detalle por vehículo -->
+  <mat-card class="tc-card">
+    <h2 class="section">Detalle por vehículo · {{ rangoActivo.etiqueta }}</h2>
+
+    <div *ngIf="!filas.length" class="tc-empty" style="padding:28px;">
+      <mat-icon>insights</mat-icon>
+      <p>No hay trabajos aceptados en este período.</p>
+      <p class="tc-muted" style="font-size:13px;">
+        Una cotización empieza a contar cuando la marcas como aceptada o la pasas a servicio.
+      </p>
+    </div>
+
+    <div class="tc-table-wrap tc-cards" *ngIf="filas.length">
+      <table class="tc-table">
+        <thead>
+          <tr>
+            <th>Vehículo</th>
+            <th>Cliente</th>
+            <th class="c-center">Trabajos</th>
+            <th class="c-right">Cobrado</th>
+            <th class="c-right">Gastado</th>
+            <th class="c-right">Ganancia</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filas">
+            <td class="tc-cell-title">
+              {{ f.vehiculo }}
+              <div class="tc-muted" style="font-size:12px;">{{ f.placa }}</div>
+            </td>
+            <td data-label="Cliente">{{ f.cliente }}</td>
+            <td class="c-center" data-label="Trabajos">{{ f.trabajos }}</td>
+            <td class="c-right" data-label="Cobrado">{{ f.ingreso | gtq }}</td>
+            <td class="c-right" data-label="Gastado">{{ f.gasto | gtq }}</td>
+            <td class="c-right" data-label="Ganancia">
+              <strong [class.gain]="f.ganancia > 0" [class.loss]="f.ganancia < 0">{{ f.ganancia | gtq }}</strong>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="totales">
+            <td colspan="2"><strong>Total</strong></td>
+            <td class="c-center" data-label="Trabajos"><strong>{{ resumen.trabajos }}</strong></td>
+            <td class="c-right" data-label="Cobrado"><strong>{{ resumen.ingreso | gtq }}</strong></td>
+            <td class="c-right" data-label="Gastado"><strong>{{ resumen.gasto | gtq }}</strong></td>
+            <td class="c-right" data-label="Ganancia"><strong>{{ resumen.ganancia | gtq }}</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </mat-card>
+</div>

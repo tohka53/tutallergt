@@ -38,12 +38,14 @@
     padding-top: calc(18px + var(--tc-safe-top));
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   }
-  .tc-brand img { height: 32px; width: 32px; object-fit: contain; flex: 0 0 auto; }
-  .tc-brand .logo-fallback {
-    height: 34px; width: 34px; border-radius: 8px; background: var(--tc-yellow);
-    color: var(--tc-black); display: grid; place-items: center; font-weight: 800;
-    flex: 0 0 auto;
+  /* El logo del taller es apaisado y ya trae el nombre dentro, así que se
+     muestra completo en vez de recortarlo en un cuadrito. */
+  .tc-brand img {
+    width: auto; max-width: 100%; max-height: 42px; object-fit: contain;
+    border-radius: 6px; flex: 0 1 auto; min-width: 0;
   }
+  .tc-sidenav.collapsed .tc-brand { padding-left: 10px; padding-right: 10px; }
+  .tc-sidenav.collapsed .tc-brand img { max-height: 34px; }
   .tc-brand .name {
     font-weight: 700; font-size: 16px; min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

@@ -4,6 +4,7 @@ import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ResponsiveService } from '../../services/responsive.service';
 import { WorkshopSettingsService } from '../../services/workshop-settings.service';
+import { DataSyncService } from '../../services/data-sync.service';
 
 interface NavItem { label: string; icon: string; link: string; }
 
@@ -18,6 +19,7 @@ export class MechanicLayoutComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private responsive = inject(ResponsiveService);
   settings = inject(WorkshopSettingsService);
+  private sync = inject(DataSyncService);
 
   /** true cuando el menú lateral debe comportarse como cajón superpuesto. */
   compactNav = false;
@@ -31,6 +33,7 @@ export class MechanicLayoutComponent implements OnInit, OnDestroy {
 
   nav: NavItem[] = [
     { label: 'Panel', icon: 'dashboard', link: '/app/dashboard' },
+    { label: 'Métricas', icon: 'insights', link: '/app/metrics' },
     { label: 'Clientes', icon: 'people', link: '/app/clients' },
     { label: 'Vehículos', icon: 'directions_car', link: '/app/vehicles' },
     { label: 'Cotizaciones', icon: 'request_quote', link: '/app/quotations' },
@@ -64,8 +67,9 @@ export class MechanicLayoutComponent implements OnInit, OnDestroy {
     else { this.collapsed = !this.collapsed; }
   }
 
-  logout(): void {
-    this.auth.logout();
+  async logout(): Promise<void> {
+    await this.auth.logout();
+    this.sync.clearAll();
     this.router.navigate(['/auth/login']);
   }
 }

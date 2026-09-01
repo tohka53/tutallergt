@@ -6,5 +6,4 @@ export * from './part-catalog.model';
 export * from './quotation.model';
 export * from './workshop-service.model';
 export * from './service-photo.model';
-export * from './delivery-log.model';
 export * from './workshop-settings.model';

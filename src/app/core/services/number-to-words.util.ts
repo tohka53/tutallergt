@@ -1,6 +1,11 @@
 /**
- * Convierte un monto a letras en español, formato factura Guatemala.
- * Ej: 1234.50 -> "UN MIL DOSCIENTOS TREINTA Y CUATRO QUETZALES CON 50/100"
+ * Monto a letras, en español de Guatemala.
+ *
+ * Dos formatos, porque no se usan igual:
+ *  - numberToWords: estilo factura, todo en mayúsculas y con los centavos
+ *    como fracción: "UN MIL DOSCIENTOS TREINTA Y CUATRO QUETZALES CON 50/100".
+ *  - amountInWords: el que va en la cotización de Mundo Garage, tal como está
+ *    en el formato de papel: "Mil Sesenta Quetzales Exactos".
  */
 const UNIDADES = ['', 'UNO', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
 const ESPECIALES: Record<number, string> = {
@@ -35,31 +40,56 @@ function toWordsBelowThousand(n: number): string {
   return words.trim();
 }
 
+/**
+ * Parte entera en letras.
+ * `unMil` decide entre "UN MIL" (estilo factura) y "MIL" (estilo cotización).
+ */
+function integerToWords(integer: number, unMil: boolean): string {
+  if (integer === 0) { return 'CERO'; }
+  const millions = Math.floor(integer / 1_000_000);
+  const thousands = Math.floor((integer % 1_000_000) / 1000);
+  const rest = integer % 1000;
+  const parts: string[] = [];
+  if (millions > 0) {
+    parts.push(millions === 1 ? 'UN MILLON' : toWordsBelowThousand(millions) + ' MILLONES');
+  }
+  if (thousands > 0) {
+    if (thousands === 1) {
+      parts.push(unMil ? 'UN MIL' : 'MIL');
+    } else {
+      parts.push(toWordsBelowThousand(thousands) + ' MIL');
+    }
+  }
+  if (rest > 0) { parts.push(toWordsBelowThousand(rest)); }
+  return parts.join(' ');
+}
+
+/** Estilo factura: "UN MIL DOSCIENTOS QUETZALES CON 50/100". */
 export function numberToWords(amount: number): string {
   const rounded = Math.round(amount * 100) / 100;
   const integer = Math.floor(rounded);
   const cents = Math.round((rounded - integer) * 100);
-
-  let text: string;
-  if (integer === 0) {
-    text = 'CERO';
-  } else {
-    const millions = Math.floor(integer / 1_000_000);
-    const thousands = Math.floor((integer % 1_000_000) / 1000);
-    const rest = integer % 1000;
-    const parts: string[] = [];
-    if (millions > 0) {
-      parts.push(millions === 1 ? 'UN MILLON' : toWordsBelowThousand(millions) + ' MILLONES');
-    }
-    if (thousands > 0) {
-      parts.push(thousands === 1 ? 'UN MIL' : toWordsBelowThousand(thousands) + ' MIL');
-    }
-    if (rest > 0) {
-      parts.push(toWordsBelowThousand(rest));
-    }
-    text = parts.join(' ');
-  }
-
   const centsStr = cents.toString().padStart(2, '0');
-  return `${text} QUETZALES CON ${centsStr}/100`;
+  return `${integerToWords(integer, true)} QUETZALES CON ${centsStr}/100`;
+}
+
+/** Cada palabra con la inicial en mayúscula: "Mil Sesenta Quetzales". */
+function titleCase(text: string): string {
+  return text
+    .toLowerCase()
+    .split(' ')
+    .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(' ');
+}
+
+/**
+ * Estilo de la cotización en papel de Mundo Garage:
+ * "Mil Sesenta Quetzales Exactos" · "Mil Sesenta Quetzales con 50/100".
+ */
+export function amountInWords(amount: number): string {
+  const rounded = Math.round(amount * 100) / 100;
+  const integer = Math.floor(rounded);
+  const cents = Math.round((rounded - integer) * 100);
+  const base = titleCase(integerToWords(integer, false)) + ' Quetzales';
+  return cents === 0 ? `${base} Exactos` : `${base} con ${cents.toString().padStart(2, '0')}/100`;
 }

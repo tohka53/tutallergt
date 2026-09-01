@@ -18,15 +18,31 @@
           <div class="tc-muted">{{ quotation.date | date:'dd/MM/yyyy' }} · Vigencia {{ quotation.validityDays }} días</div>
         </div>
         <div class="tc-actions head-actions">
-          <button mat-raised-button class="tc-btn-secondary" (click)="preview()"><mat-icon>picture_as_pdf</mat-icon> Ver PDF</button>
           <ng-container *ngIf="isMechanic">
-            <button mat-raised-button class="tc-btn-secondary" (click)="share()"><mat-icon>share</mat-icon> Compartir</button>
+            <button mat-raised-button class="tc-btn-primary send-btn" (click)="send()" [disabled]="sending">
+              <mat-icon *ngIf="!sending">send</mat-icon>
+              <mat-progress-spinner *ngIf="sending" diameter="18" mode="indeterminate" style="display:inline-block;"></mat-progress-spinner>
+              <span>{{ sending ? 'Preparando...' : 'Enviar cotización' }}</span>
+            </button>
+          </ng-container>
+          <button mat-raised-button class="tc-btn-secondary" (click)="preview()"><mat-icon>picture_as_pdf</mat-icon> Ver PDF</button>
+          <button mat-stroked-button (click)="downloadPdf()"><mat-icon>download</mat-icon> Descargar</button>
+          <ng-container *ngIf="isMechanic">
+            <button mat-stroked-button *ngIf="quotation.status === 'sent'" (click)="markAccepted()">
+              <mat-icon>thumb_up</mat-icon> Cliente aceptó
+            </button>
             <a mat-stroked-button *ngIf="quotation.status !== 'converted'" [routerLink]="['/app/quotations', quotation.id, 'edit']"><mat-icon>edit</mat-icon> Editar</a>
-            <button mat-raised-button class="tc-btn-primary" *ngIf="canConvert()" (click)="convert()"><mat-icon>build</mat-icon> Pasar a servicio</button>
+            <button mat-raised-button class="tc-btn-secondary" *ngIf="canConvert()" (click)="convert()"><mat-icon>build</mat-icon> Pasar a servicio</button>
             <button mat-stroked-button color="warn" *ngIf="quotation.status !== 'converted' && quotation.status !== 'void'" (click)="voidQuotation()"><mat-icon>block</mat-icon> Anular</button>
           </ng-container>
         </div>
       </div>
+
+      <p class="tc-muted send-hint" *ngIf="isMechanic" style="margin:10px 0 0; font-size:12.5px;">
+        <mat-icon style="font-size:15px;width:15px;height:15px;vertical-align:-2px;">info</mat-icon>
+        Desde el teléfono, «Enviar cotización» abre WhatsApp con el PDF ya adjunto. Desde la
+        computadora descarga el PDF y abre WhatsApp Web con el mensaje escrito.
+      </p>
 
       <div *ngIf="quotation.convertedServiceId" style="margin-top:12px;">
         <a mat-stroked-button [routerLink]="[base, 'services', quotation.convertedServiceId]">
@@ -44,10 +60,38 @@
       </mat-card>
       <mat-card class="tc-card">
         <h3>VEHÍCULO</h3>
-        <div>{{ vehicle?.brand }} {{ vehicle?.model }} {{ vehicle?.year }} · {{ vehicle?.plate }}</div>
-        <div class="tc-muted">Cilindraje: {{ vehicle?.engineSize }} · {{ quotation.mileage.toLocaleString('es-GT') }} km</div>
+        <div>{{ vehicle?.brand }} {{ vehicle?.line || vehicle?.model }} · {{ vehicle?.plate }}</div>
+        <div class="tc-muted">
+          Modelo {{ vehicle?.year }} · C.C. {{ vehicle?.engineSize || '—' }} ·
+          {{ quotation.mileage.toLocaleString('es-GT') }} km
+        </div>
       </mat-card>
     </div>
+
+    <!-- Bloque de costos: sólo el mecánico. El cliente nunca entra aquí. -->
+    <mat-card class="tc-card internal-card" *ngIf="isMechanic">
+      <div class="title"><mat-icon>lock</mat-icon> Sólo para ti · no aparece en el PDF ni en el portal del cliente</div>
+      <div class="internal-grid">
+        <div class="cell">
+          <span class="k">Se le cobra</span>
+          <span class="v">{{ quotation.subtotal | gtq }}</span>
+        </div>
+        <div class="cell">
+          <span class="k">Gastaste en repuestos</span>
+          <span class="v">{{ quotation.costTotal | gtq }}</span>
+        </div>
+        <div class="cell">
+          <span class="k">Ganancia</span>
+          <span class="v" [class.gain]="quotation.profit > 0" [class.loss]="quotation.profit < 0">
+            {{ quotation.profit | gtq }}
+          </span>
+        </div>
+        <div class="cell">
+          <span class="k">Margen</span>
+          <span class="v" [class.gain]="marginPct > 0" [class.loss]="marginPct < 0">{{ marginPct }}%</span>
+        </div>
+      </div>
+    </mat-card>
 
     <mat-card class="tc-card items-card">
       <div class="tc-table-wrap tc-cards">
@@ -57,6 +101,7 @@
               <th class="c-center">Cant.</th>
               <th>Descripción</th>
               <th class="c-center">Tipo</th>
+              <th class="c-right" *ngIf="isMechanic">Costo</th>
               <th class="c-right">P. unit.</th>
               <th class="c-right">Desc.</th>
               <th class="c-right">Subtotal</th>
@@ -70,6 +115,9 @@
               </td>
               <td class="c-center" data-label="Cant.">{{ it.quantity }}</td>
               <td class="c-center" data-label="Tipo">{{ typeLabel(it.type) }}</td>
+              <td class="c-right cost-col" data-label="Costo" *ngIf="isMechanic">
+                {{ it.type === 'labor' ? '—' : (it.unitCost | gtq) }}
+              </td>
               <td class="c-right" data-label="P. unit.">{{ it.unitPrice | gtq }}</td>
               <td class="c-right" data-label="Desc.">{{ it.discount | gtq }}</td>
               <td class="c-right" data-label="Subtotal"><strong>{{ it.subtotal | gtq }}</strong></td>
@@ -79,10 +127,11 @@
       </div>
 
       <div class="totals-box">
-        <div class="totals-row"><span>Subtotal repuestos:</span><span>{{ quotation.partsSubtotal | gtq }}</span></div>
-        <div class="totals-row"><span>Subtotal mano de obra:</span><span>{{ quotation.laborSubtotal | gtq }}</span></div>
+        <div class="totals-row"><span>Repuestos y materiales:</span><span>{{ quotation.partsSubtotal | gtq }}</span></div>
+        <div class="totals-row"><span>Mano de obra:</span><span>{{ quotation.laborSubtotal | gtq }}</span></div>
         <div class="totals-row"><span>Descuentos:</span><span>- {{ quotation.discountTotal | gtq }}</span></div>
-        <div class="totals-row" *ngIf="quotation.applyTax"><span>Impuesto ({{ quotation.taxRate }}%):</span><span>{{ quotation.taxAmount | gtq }}</span></div>
+        <div class="totals-row"><span>Subtotal:</span><span>{{ quotation.subtotal | gtq }}</span></div>
+        <div class="totals-row" *ngIf="quotation.advance"><span>Anticipo:</span><span>- {{ quotation.advance | gtq }}</span></div>
         <div class="totals-row grand"><span>TOTAL:</span><span>{{ quotation.total | gtq }}</span></div>
         <div class="tc-muted in-words">Son: {{ totalInWords }}</div>
       </div>

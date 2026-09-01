@@ -32,6 +32,23 @@ export class ClientDetailComponent implements OnInit {
   qLabel = QUOTATION_STATUS_LABELS; qChip = QUOTATION_STATUS_CHIP;
   sLabel = SERVICE_STATUS_LABELS; sChip = SERVICE_STATUS_CHIP;
 
+  /**
+   * El cliente entra al portal sólo si está activo y ya tiene un vehículo
+   * registrado. Se muestra en la ficha porque, si no, la pregunta "¿por qué mi
+   * cliente no puede entrar?" no tiene respuesta visible en ningún lado.
+   */
+  get puedeEntrar(): boolean {
+    return !!this.client?.active && this.vehicles$.some((v) => v.active);
+  }
+
+  get motivoSinAcceso(): string {
+    if (!this.client?.active) { return 'El cliente está inactivo.'; }
+    if (!this.vehicles$.some((v) => v.active)) {
+      return 'Todavía no tiene vehículos registrados. Agrégale uno y podrá entrar.';
+    }
+    return '';
+  }
+
   ngOnInit(): void {
     this.route.paramMap.pipe(
       switchMap((p) => {

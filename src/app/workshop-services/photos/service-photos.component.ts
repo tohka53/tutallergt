@@ -41,8 +41,6 @@ export class ServicePhotosComponent implements OnInit, OnDestroy {
   readonly accept = SERVICE_PHOTO_ACCEPT;
 
   photos: ServicePhoto[] = [];
-  /** object URLs vivos, por blobKey. Se liberan al cambiar la lista y al destruir. */
-  urls: Record<string, string> = {};
   uploading = false;
 
   get maxUploadMb(): number {
@@ -54,32 +52,11 @@ export class ServicePhotosComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Las fotos viven en un bucket público de Supabase: la URL viene lista en
+    // cada registro, así que no hay object URLs que crear ni que liberar.
     this.photoService.listForService(this.serviceId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((list) => {
-        this.photos = list;
-        this.syncUrls(list);
-      });
-  }
-
-  /** Crea los object URL que faltan y libera los que ya no se usan. */
-  private syncUrls(list: ServicePhoto[]): void {
-    const live = new Set(list.map((p) => p.blobKey));
-    Object.keys(this.urls).forEach((key) => {
-      if (!live.has(key)) {
-        URL.revokeObjectURL(this.urls[key]);
-        delete this.urls[key];
-      }
-    });
-    list.forEach((photo) => {
-      if (this.urls[photo.blobKey]) { return; }
-      this.photoService.getObjectUrl(photo)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (url) => { this.urls[photo.blobKey] = url; },
-          error: () => { /* la miniatura queda con el marcador de "no disponible" */ },
-        });
-    });
+      .subscribe((list) => (this.photos = list));
   }
 
   onFilesSelected(event: Event): void {
@@ -157,7 +134,5 @@ export class ServicePhotosComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    Object.values(this.urls).forEach((url) => URL.revokeObjectURL(url));
-    this.urls = {};
   }
 }

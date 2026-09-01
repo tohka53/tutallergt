@@ -1,26 +1,59 @@
 .item-row {
   display: grid;
-  grid-template-columns: 28px 120px minmax(0, 1fr) 90px 110px 100px 100px 80px;
+  grid-template-columns: 24px 108px minmax(0, 1fr) 74px 96px 96px 88px 96px 76px;
   gap: 8px; align-items: start; padding: 8px; border-radius: 8px; background: #fff;
   border: 1px solid var(--tc-border); margin-bottom: 8px;
 }
 .item-row.labor { background: #fffdf5; }
 .drag-handle { cursor: move; color: var(--tc-muted); padding-top: 18px; }
-.item-subtotal { font-weight: 700; padding-top: 16px; text-align: right; }
+
+.item-subtotal { font-weight: 700; padding-top: 12px; text-align: right; }
 .item-subtotal .lbl { display: none; }
+/* Ganancia de la línea: verde si gana, rojo si está vendiendo bajo el costo. */
+.item-subtotal .profit {
+  display: block; font-size: 11.5px; font-weight: 600; color: var(--tc-muted);
+}
+.item-subtotal .profit.neg { color: #c62828; }
+.item-subtotal .profit.pos { color: #2e7d32; }
+
 .item-actions { display: flex; gap: 2px; padding-top: 8px; }
+
+.cost-hint { padding-top: 18px; font-size: 12px; color: var(--tc-muted); text-align: center; }
+
 .totals-box { max-width: 360px; margin-left: auto; }
 .totals-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; }
 .totals-row.grand { font-size: 18px; font-weight: 800; border-top: 2px solid var(--tc-yellow); margin-top: 6px; padding-top: 10px; }
+
+/* Bloque interno: costos y ganancia. Nunca sale en el PDF ni lo ve el cliente. */
+.internal-box {
+  background: #f7f9fb; border: 1px dashed #b0bec5; border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 14px;
+}
+.internal-box .title {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
+  color: #546e7a; margin-bottom: 8px;
+}
+.internal-box .title mat-icon { font-size: 17px; width: 17px; height: 17px; }
+.internal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.internal-grid .cell .k {
+  display: block; font-size: 11.5px; color: var(--tc-muted); text-transform: uppercase; letter-spacing: 0.3px;
+}
+.internal-grid .cell .v { font-size: 18px; font-weight: 800; }
+.internal-grid .cell .v.gain { color: #2e7d32; }
+.internal-grid .cell .v.loss { color: #c62828; }
+
 .catalog-search { position: relative; }
 .results { border: 1px solid var(--tc-border); border-radius: 8px; margin-top: 4px; max-height: 240px; overflow: auto; }
 .result-item { padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--tc-border); }
 .result-item:hover { background: var(--tc-bg-gray); }
 .result-item:last-child { border-bottom: none; }
+.result-item .price-pair { display: flex; flex-direction: column; align-items: flex-end; }
+.result-item .price-pair .cost { font-size: 11.5px; color: var(--tc-muted); font-weight: 500; }
 
 /* Pantallas medianas: se comprimen las columnas antes de apilar */
-@media (max-width: 1200px) {
-  .item-row { grid-template-columns: 24px 110px minmax(0, 1fr) 74px 96px 88px 92px 76px; gap: 6px; }
+@media (max-width: 1280px) {
+  .item-row { grid-template-columns: 22px 96px minmax(0, 1fr) 62px 84px 84px 76px 88px 72px; gap: 6px; }
 }
 
 /* ---------- Móvil: cada artículo se convierte en una tarjeta ---------- */
@@ -30,7 +63,8 @@
     grid-template-areas:
       'name name'
       'type qty'
-      'price disc'
+      'cost price'
+      'disc disc'
       'sub  actions';
     gap: 0 10px;
     padding: 12px;
@@ -40,18 +74,22 @@
   .f-name  { grid-area: name; }
   .f-type  { grid-area: type; }
   .f-qty   { grid-area: qty; }
+  .f-cost  { grid-area: cost; }
   .f-price { grid-area: price; }
   .f-disc  { grid-area: disc; }
+  .cost-hint { grid-area: cost; padding-top: 0; padding-bottom: 18px; text-align: left; }
 
   .item-subtotal {
     grid-area: sub;
-    display: flex; align-items: baseline; gap: 8px;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
     padding-top: 4px; text-align: left; font-size: 17px;
   }
   .item-subtotal .lbl {
     display: inline; font-size: 11.5px; font-weight: 700; text-transform: uppercase;
     letter-spacing: 0.4px; color: var(--tc-muted);
   }
+  .item-subtotal .profit { flex-basis: 100%; }
+
   .item-actions { grid-area: actions; justify-content: flex-end; padding-top: 0; }
 
   .totals-box { max-width: none; }

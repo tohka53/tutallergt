@@ -48,6 +48,7 @@ export class VehicleFormComponent implements OnInit {
     customBrand: [''],
     modelSelect: ['', Validators.required],
     customModel: [''],
+    line: [''],
     year: [this.currentYear, [Validators.required, Validators.min(1950), Validators.max(this.currentYear + 1)]],
     color: [''],
     type: ['Sedán'],
@@ -63,13 +64,10 @@ export class VehicleFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    if (this.isMechanic) {
-      this.clients.list().subscribe((c) => (this.clientList = c.filter((x) => x.active)));
-    } else {
-      const clientId = this.authz.currentClientId() ?? '';
-      this.form.patchValue({ ownerId: clientId });
-      this.form.controls.ownerId.disable();
-    }
+    // El portal del cliente es sólo de lectura: los vehículos los registra el
+    // taller, y de esa regla depende además el ingreso por teléfono.
+    if (!this.isMechanic) { this.router.navigate(['/denied']); return; }
+    this.clients.list().subscribe((c) => (this.clientList = c.filter((x) => x.active)));
 
     // preseleccionar propietario si viene por query (?ownerId=)
     const qpOwner = this.route.snapshot.queryParamMap.get('ownerId');
@@ -96,7 +94,7 @@ export class VehicleFormComponent implements OnInit {
       ownerId: v.ownerId, plate: v.plate, vin: v.vin,
       brandSelect, customBrand: brand ? '' : v.brand,
       modelSelect, customModel: model ? '' : v.model,
-      year: v.year, color: v.color, type: v.type, engineSize: v.engineSize,
+      line: v.line, year: v.year, color: v.color, type: v.type, engineSize: v.engineSize,
       fuelType: v.fuelType, transmission: v.transmission, mileage: v.mileage,
       origin: v.origin, originCountry: v.originCountry ?? '', engineNumber: v.engineNumber ?? '',
       notes: v.notes, active: v.active,
@@ -135,7 +133,7 @@ export class VehicleFormComponent implements OnInit {
     const v = this.form.getRawValue();
     const payload: Omit<Vehicle, 'id' | 'createdAt'> = {
       ownerId: v.ownerId, plate: v.plate.trim().toUpperCase(), vin: v.vin, brand, model,
-      year: v.year, color: v.color, type: v.type, engineSize: v.engineSize, fuelType: v.fuelType,
+      line: v.line, year: v.year, color: v.color, type: v.type, engineSize: v.engineSize, fuelType: v.fuelType,
       transmission: v.transmission, mileage: v.mileage, origin: v.origin,
       originCountry: v.origin === 'imported' ? v.originCountry : undefined,
       engineNumber: v.engineNumber, notes: v.notes, active: v.active,

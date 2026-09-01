@@ -7,9 +7,7 @@
                [fixedInViewport]="compactNav"
                [class.collapsed]="collapsed && !compactNav">
     <div class="tc-brand">
-      <img *ngIf="settings.current.logoDataUrl" [src]="settings.current.logoDataUrl" alt="Logo del taller" />
-      <span *ngIf="!settings.current.logoDataUrl" class="logo-fallback" aria-hidden="true">TC</span>
-      <span class="name" *ngIf="!collapsed || compactNav">{{ settings.current.name }}</span>
+      <img [src]="settings.logoSrc" [alt]="settings.current.name" />
       <button *ngIf="compactNav" mat-icon-button class="close-nav" (click)="navOpen = false"
               aria-label="Cerrar menú">
         <mat-icon>close</mat-icon>
@@ -31,7 +29,6 @@
         <mat-icon>menu</mat-icon>
       </button>
       <span class="title">Portal del cliente</span>
-      <span class="tc-demo-badge demo-badge">MODO DEMOSTRACIÓN</span>
       <span class="tc-spacer"></span>
 
       <button type="button" class="tc-user" [matMenuTriggerFor]="userMenu" aria-label="Menú de usuario">
@@ -48,7 +45,7 @@
           <div class="u-role">Cliente</div>
         </div>
         <button mat-menu-item routerLink="/portal/profile">
-          <mat-icon>person</mat-icon><span>Mi perfil</span>
+          <mat-icon>person</mat-icon><span>Mis datos</span>
         </button>
         <button mat-menu-item (click)="logout()">
           <mat-icon>logout</mat-icon><span>Cerrar sesión</span>

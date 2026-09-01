@@ -4,6 +4,7 @@ import { ServiceStatus } from '../models/workshop-service.model';
 export const QUOTATION_STATUS_LABELS: Record<QuotationStatus, string> = {
   draft: 'Borrador',
   sent: 'Enviada',
+  accepted: 'Aceptada',
   converted: 'Convertida en servicio',
   void: 'Anulada',
 };
@@ -11,6 +12,7 @@ export const QUOTATION_STATUS_LABELS: Record<QuotationStatus, string> = {
 export const QUOTATION_STATUS_CHIP: Record<QuotationStatus, string> = {
   draft: 'tc-chip--draft',
   sent: 'tc-chip--sent',
+  accepted: 'tc-chip--ok',
   converted: 'tc-chip--converted',
   void: 'tc-chip--void',
 };

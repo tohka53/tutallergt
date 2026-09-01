@@ -5,7 +5,9 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ClientService } from '../../core/services/client.service';
 import { VehicleService } from '../../core/services/vehicle.service';
 import { PartsCatalogService } from '../../core/services/parts-catalog.service';
-import { QuotationService, computeItemSubtotal, computeQuotationTotals } from '../../core/services/quotation.service';
+import {
+  QuotationService, computeItemCost, computeItemSubtotal, computeQuotationTotals,
+} from '../../core/services/quotation.service';
 import { WorkshopSettingsService } from '../../core/services/workshop-settings.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -48,10 +50,9 @@ export class QuotationFormComponent implements OnInit {
     validityDays: [15, [Validators.required, Validators.min(1)]],
     mileage: [0, [Validators.min(0)]],
     paymentMethod: ['Efectivo / Transferencia'],
+    advance: [0, [Validators.min(0)]],
     notes: [''],
     considerations: ['Los precios pueden variar según disponibilidad de repuestos.'],
-    applyTax: [true],
-    taxRate: [this.settings.current.defaultTaxRate, [Validators.min(0), Validators.max(100)]],
     items: this.fb.array<FormGroup>([]),
   });
 
@@ -72,7 +73,7 @@ export class QuotationFormComponent implements OnInit {
     if (this.editId) {
       this.loading = true;
       this.quotations.getById(this.editId).subscribe((q) => {
-        if (q) { this.loadQuotation(q); }
+        if (q && !this.items.length) { this.loadQuotation(q); }
         this.loading = false;
       });
     } else if (qpVehicle) {
@@ -89,7 +90,7 @@ export class QuotationFormComponent implements OnInit {
     this.form.patchValue({
       clientId: q.clientId, vehicleId: q.vehicleId, date: new Date(q.date),
       validityDays: q.validityDays, mileage: q.mileage, paymentMethod: q.paymentMethod,
-      notes: q.notes, considerations: q.considerations, applyTax: q.applyTax, taxRate: q.taxRate,
+      advance: q.advance, notes: q.notes, considerations: q.considerations,
     });
     setTimeout(() => this.form.patchValue({ vehicleId: q.vehicleId }));
     q.items.forEach((it) => this.items.push(this.buildItem(it)));
@@ -102,6 +103,7 @@ export class QuotationFormComponent implements OnInit {
       code: [data?.code ?? ''],
       name: [data?.name ?? '', Validators.required],
       quantity: [data?.quantity ?? 1, [Validators.required, Validators.min(0.01)]],
+      unitCost: [data?.unitCost ?? 0, [Validators.min(0)]],
       unitPrice: [data?.unitPrice ?? 0, [Validators.required, Validators.min(0)]],
       discount: [data?.discount ?? 0, [Validators.min(0)]],
       note: [data?.note ?? ''],
@@ -111,9 +113,13 @@ export class QuotationFormComponent implements OnInit {
   addManualItem(): void { this.items.push(this.buildItem()); }
 
   addFromCatalog(part: PartCatalogItem): void {
-    const type = part.type === 'lubricant' ? 'material' : part.type === 'labor' ? 'labor' : part.type === 'other' ? 'other' : 'part';
+    const type = part.type === 'lubricant' ? 'material'
+      : part.type === 'labor' ? 'labor'
+      : part.type === 'other' ? 'other' : 'part';
     this.items.push(this.buildItem({
-      type: type as QuotationItem['type'], code: part.code, name: part.name, unitPrice: part.suggestedPrice, quantity: 1, discount: 0,
+      type: type as QuotationItem['type'], code: part.code, name: part.name,
+      unitCost: type === 'labor' ? 0 : part.suggestedCost,
+      unitPrice: part.suggestedPrice, quantity: 1, discount: 0,
     }));
     this.searchResults = [];
   }
@@ -132,6 +138,11 @@ export class QuotationFormComponent implements OnInit {
     this.items.updateValueAndValidity();
   }
 
+  /** La mano de obra no tiene costo base: se oculta la casilla para no confundir. */
+  isLabor(group: FormGroup): boolean {
+    return group.get('type')?.value === 'labor';
+  }
+
   lineSubtotal(group: FormGroup): number {
     return computeItemSubtotal({
       quantity: group.get('quantity')?.value ?? 0,
@@ -140,20 +151,39 @@ export class QuotationFormComponent implements OnInit {
     });
   }
 
-  get totals() {
-    const items = this.items.controls.map((g) => {
-      const v = g.getRawValue() as QuotationItem;
-      return { ...v, subtotal: computeItemSubtotal(v) };
+  lineCost(group: FormGroup): number {
+    return computeItemCost({
+      quantity: group.get('quantity')?.value ?? 0,
+      unitCost: group.get('unitCost')?.value ?? 0,
+      type: group.get('type')?.value ?? 'part',
     });
-    return computeQuotationTotals(
-      items, this.form.controls.applyTax.value ?? false, this.form.controls.taxRate.value ?? 0
-    );
+  }
+
+  /** Ganancia de la línea, para que el mecánico la vea mientras cotiza. */
+  lineProfit(group: FormGroup): number {
+    return Math.round((this.lineSubtotal(group) - this.lineCost(group)) * 100) / 100;
+  }
+
+  get totals() {
+    return computeQuotationTotals(this.buildItemsPayload(), this.form.controls.advance.value ?? 0);
+  }
+
+  /** Margen sobre la venta, en porcentaje. */
+  get marginPct(): number {
+    const t = this.totals;
+    if (!t.subtotal) { return 0; }
+    return Math.round((t.profit / t.subtotal) * 1000) / 10;
   }
 
   private buildItemsPayload(): QuotationItem[] {
     return this.items.controls.map((g) => {
       const v = g.getRawValue() as QuotationItem;
-      return { ...v, subtotal: computeItemSubtotal(v) };
+      const unitCost = v.type === 'labor' ? 0 : v.unitCost;
+      return {
+        ...v, unitCost,
+        subtotal: computeItemSubtotal(v),
+        costSubtotal: computeItemCost({ ...v, unitCost }),
+      };
     });
   }
 
@@ -167,17 +197,17 @@ export class QuotationFormComponent implements OnInit {
     const base = {
       clientId: v.clientId!, vehicleId: v.vehicleId!, date: (v.date as Date).toISOString(),
       validityDays: v.validityDays!, mileage: v.mileage!, paymentMethod: v.paymentMethod!,
-      notes: v.notes!, considerations: v.considerations!, applyTax: v.applyTax!, taxRate: v.taxRate!,
+      notes: v.notes!, considerations: v.considerations!,
       items: this.buildItemsPayload(), status,
     };
 
     if (this.editId) {
-      this.quotations.update(this.editId, base).subscribe({
+      this.quotations.update(this.editId, { ...base, advance: v.advance ?? 0 }).subscribe({
         next: (q) => this.done(q.id, 'Cotización actualizada.'),
         error: (e: Error) => this.fail(e),
       });
     } else {
-      this.quotations.create(base).subscribe({
+      this.quotations.create({ ...base, advance: v.advance ?? 0 } as Parameters<QuotationService['create']>[0]).subscribe({
         next: (q) => this.done(q.id, 'Cotización creada.'),
         error: (e: Error) => this.fail(e),
       });

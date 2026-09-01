@@ -1,17 +1,18 @@
 /**
- * Configuración del taller. Editable desde la página de Configuración.
- * En producción esto viviría en la base de datos / variables de entorno.
+ * Datos del taller que salen en el encabezado de la app y en el PDF.
+ * Se guardan en la tabla `taller_config` de Supabase, una fila por mecánico.
  */
 export interface WorkshopSettings {
   name: string;
-  logoDataUrl: string; // base64 data URL (demo)
+  slogan: string;
+  /** data URL o ruta al logo. Vacío = se usa el logo incluido en la app. */
+  logoDataUrl: string;
   email: string;
   phone: string;
   address: string;
   taxId: string;   // NIT del taller
   currencySymbol: string; // Q
-  defaultTaxRate: number;  // 12
-  maxUploadMb: number;     // 5
+  maxUploadMb: number;    // 5
   colors: {
     black: string;
     yellow: string;

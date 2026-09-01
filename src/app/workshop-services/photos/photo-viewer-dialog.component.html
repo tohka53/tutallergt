@@ -51,7 +51,7 @@
   <div class="viewer-caption" *ngIf="current && !loading">
     <div *ngIf="current.caption" class="cap">{{ current.caption }}</div>
     <div class="tc-muted sub">
-      Subida por {{ current.uploadedByName }} · {{ current.uploadedAt | date:'dd/MM/yyyy HH:mm' }}
+      Subida el {{ current.uploadedAt | date:'dd/MM/yyyy HH:mm' }}
     </div>
   </div>
 </mat-dialog-content>

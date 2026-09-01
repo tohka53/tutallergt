@@ -31,9 +31,9 @@
       <figure *ngFor="let p of photos; let i = index; trackBy: trackById" class="photo">
         <button type="button" class="thumb" (click)="open(i)"
                 [attr.aria-label]="'Ampliar foto ' + (i + 1) + (p.caption ? ': ' + p.caption : '')">
-          <img *ngIf="urls[p.blobKey]" [src]="urls[p.blobKey]"
+          <img *ngIf="p.url" [src]="p.url"
                [alt]="p.caption || 'Evidencia ' + (i + 1)" loading="lazy" />
-          <span *ngIf="!urls[p.blobKey]" class="thumb-fallback">
+          <span *ngIf="!p.url" class="thumb-fallback">
             <mat-icon>broken_image</mat-icon>
           </span>
           <span class="thumb-zoom"><mat-icon>zoom_in</mat-icon></span>

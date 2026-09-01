@@ -1,14 +1,16 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, from, of, throwError } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
-  ServiceStatus, ServiceStatusHistory, WorkshopService, WorkshopServiceItem, Quotation,
+  Quotation, ServiceStatus, ServiceStatusHistory, WorkshopService, WorkshopServiceItem,
 } from '../../models';
-import { StorageService } from './storage.service';
-import { uuid } from './id.util';
+import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
 import { ServicePhotoService } from './service-photo.service';
-import { computeItemSubtotal } from './quotation.service';
+import { VehicleService } from './vehicle.service';
+import { computeItemSubtotal, computeItemCost, round2 } from './quotation.service';
+import { fromService, toService } from './mappers';
+import { uuid } from './id.util';
 
 export const SERVICE_STATUS_LABELS: Record<ServiceStatus, string> = {
   'received': 'Recibido',
@@ -23,35 +25,42 @@ export const SERVICE_STATUS_LABELS: Record<ServiceStatus, string> = {
 };
 
 export function computeServiceTotal(items: WorkshopServiceItem[]): number {
-  return Math.round(items.reduce((sum, it) => sum + computeItemSubtotal(it), 0) * 100) / 100;
+  return round2(items.reduce((sum, it) => sum + computeItemSubtotal(it), 0));
 }
+
+export function computeServiceCost(items: WorkshopServiceItem[]): number {
+  return round2(items.reduce((sum, it) => sum + computeItemCost(it), 0));
+}
+
+type NewService = Omit<
+  WorkshopService,
+  'id' | 'number' | 'createdAt' | 'updatedAt' | 'total' | 'costTotal' | 'statusHistory'
+>;
 
 @Injectable({ providedIn: 'root' })
 export class WorkshopServiceService {
-  private storage = inject(StorageService);
+  private sb = inject(SupabaseService);
   private auth = inject(AuthService);
   private photos = inject(ServicePhotoService);
-  private readonly key = 'workshop-services';
-  private readonly seqKey = 'service-seq';
-  private subject = new BehaviorSubject<WorkshopService[]>(
-    this.storage.get<WorkshopService[]>(this.key, [])
-  );
+  private vehicles = inject(VehicleService);
+
+  private subject = new BehaviorSubject<WorkshopService[]>([]);
   readonly services$ = this.subject.asObservable();
 
-  private persist(items: WorkshopService[]): void {
-    this.storage.set(this.key, items);
-    this.subject.next(items);
+  get snapshot(): WorkshopService[] { return this.subject.value; }
+  setAll(items: WorkshopService[]): void { this.subject.next(items); }
+  clear(): void { this.subject.next([]); }
+
+  async reload(): Promise<void> {
+    const { data, error } = await this.sb.db
+      .from('servicios')
+      .select('*')
+      .order('fecha_creacion', { ascending: false });
+    if (error) { throw new Error(this.sb.mensaje(error)); }
+    this.subject.next((data ?? []).map(toService));
   }
 
-  nextNumber(): string {
-    const current = this.storage.get<number>(this.seqKey, 0) + 1;
-    this.storage.set(this.seqKey, current);
-    return 'ORD-' + current.toString().padStart(4, '0');
-  }
-
-  list(): Observable<WorkshopService[]> {
-    return of([...this.subject.value]).pipe(delay(150));
-  }
+  list(): Observable<WorkshopService[]> { return of([...this.subject.value]); }
   listByClient(clientId: string): Observable<WorkshopService[]> {
     return this.services$.pipe(map((l) => l.filter((s) => s.clientId === clientId)));
   }
@@ -59,35 +68,60 @@ export class WorkshopServiceService {
     return this.services$.pipe(map((l) => l.filter((s) => s.vehicleId === vehicleId)));
   }
   getById(id: string): Observable<WorkshopService | undefined> {
-    return of(this.subject.value.find((s) => s.id === id)).pipe(delay(100));
+    return this.services$.pipe(map((l) => l.find((s) => s.id === id)));
   }
 
-  create(
-    data: Omit<WorkshopService, 'id' | 'number' | 'createdAt' | 'updatedAt' | 'total' | 'statusHistory'>
-  ): Observable<WorkshopService> {
+  private async nextNumber(): Promise<string> {
+    const { data, error } = await this.sb.db.rpc('siguiente_correlativo', { p_tipo: 'servicio' });
+    if (error) { throw new Error(this.sb.mensaje(error)); }
+    return 'ORD-' + String(data ?? 1).padStart(4, '0');
+  }
+
+  create(data: NewService): Observable<WorkshopService> {
+    return from(this.createAsync(data));
+  }
+
+  private async createAsync(data: NewService): Promise<WorkshopService> {
+    const mecanicoId = this.auth.mechanicId;
+    if (!mecanicoId) { throw new Error('Sólo el mecánico puede crear servicios.'); }
+
     const now = new Date().toISOString();
     const user = this.auth.currentUser;
-    const service: WorkshopService = {
-      ...data,
+    const numero = await this.nextNumber();
+    const vehicle = this.vehicles.snapshot.find((v) => v.id === data.vehicleId);
+    const items = data.items.map((it) => ({
+      ...it,
+      unitCost: it.type === 'labor' ? 0 : it.unitCost,
+      subtotal: computeItemSubtotal(it),
+      costSubtotal: computeItemCost(it),
+    }));
+
+    const history: ServiceStatusHistory[] = [{
       id: uuid(),
-      number: this.nextNumber(),
-      total: computeServiceTotal(data.items),
-      statusHistory: [
-        {
-          id: uuid(),
-          fromStatus: null,
-          toStatus: data.status,
-          changedAt: now,
-          userId: user?.id ?? 'system',
-          userName: user?.displayName ?? 'Sistema',
-          comment: 'Servicio creado',
-        },
-      ],
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.persist([...this.subject.value, service]);
-    return of(service).pipe(delay(150));
+      fromStatus: null,
+      toStatus: data.status,
+      changedAt: now,
+      userId: user?.id ?? 'system',
+      userName: user?.displayName ?? 'Sistema',
+      comment: 'Servicio creado',
+    }];
+
+    const row = fromService(
+      { ...data, items, number: numero, total: computeServiceTotal(items),
+        costTotal: computeServiceCost(items), statusHistory: history },
+      vehicle?.plate ?? 'SIN-PLACA',
+      data.reason?.slice(0, 80) || 'Servicio ' + numero
+    );
+
+    const { data: created, error } = await this.sb.db
+      .from('servicios')
+      .insert({ ...row, mecanico_id: mecanicoId })
+      .select()
+      .single();
+    if (error || !created) { throw new Error(this.sb.mensaje(error)); }
+
+    await this.reload();
+    return toService(created);
   }
 
   /** Crea un servicio a partir de una cotización (conversión). */
@@ -103,7 +137,6 @@ export class WorkshopServiceService {
       clientId: quotation.clientId,
       vehicleId: quotation.vehicleId,
       quotationId: quotation.id,
-      quotationSnapshotTotal: quotation.total,
       entryDate: new Date().toISOString(),
       entryMileage: quotation.mileage,
       reason: extra.reason ?? 'Trabajos autorizados de la cotización ' + quotation.number,
@@ -121,13 +154,34 @@ export class WorkshopServiceService {
   }
 
   update(id: string, changes: Partial<WorkshopService>): Observable<WorkshopService> {
-    const items = this.subject.value.map((s) => {
-      if (s.id !== id) { return s; }
-      const merged = { ...s, ...changes, id };
-      return { ...merged, total: computeServiceTotal(merged.items), updatedAt: new Date().toISOString() };
-    });
-    this.persist(items);
-    return of(items.find((s) => s.id === id) as WorkshopService).pipe(delay(150));
+    return from(this.updateAsync(id, changes));
+  }
+
+  private async updateAsync(id: string, changes: Partial<WorkshopService>): Promise<WorkshopService> {
+    const current = this.subject.value.find((s) => s.id === id);
+    if (!current) { throw new Error('Servicio no encontrado.'); }
+
+    const merged = { ...current, ...changes };
+    const items = merged.items.map((it) => ({
+      ...it,
+      unitCost: it.type === 'labor' ? 0 : it.unitCost,
+      subtotal: computeItemSubtotal(it),
+      costSubtotal: computeItemCost(it),
+    }));
+    const vehicle = this.vehicles.snapshot.find((v) => v.id === merged.vehicleId);
+
+    const row = fromService(
+      { ...merged, items, total: computeServiceTotal(items), costTotal: computeServiceCost(items) },
+      vehicle?.plate,
+      merged.reason?.slice(0, 80) || 'Servicio ' + merged.number
+    );
+    delete row['numero'];
+
+    const { error } = await this.sb.db.from('servicios').update(row).eq('id', id);
+    if (error) { throw new Error(this.sb.mensaje(error)); }
+
+    await this.reload();
+    return this.subject.value.find((s) => s.id === id) as WorkshopService;
   }
 
   changeStatus(id: string, toStatus: ServiceStatus, comment: string): Observable<WorkshopService> {
@@ -143,13 +197,26 @@ export class WorkshopServiceService {
       userName: user?.displayName ?? 'Sistema',
       comment: comment || SERVICE_STATUS_LABELS[toStatus],
     };
-    return this.update(id, { status: toStatus, statusHistory: [...svc.statusHistory, entry] });
+    const changes: Partial<WorkshopService> = {
+      status: toStatus,
+      statusHistory: [...svc.statusHistory, entry],
+    };
+    if (toStatus === 'delivered' && !svc.actualDelivery) {
+      changes.actualDelivery = new Date().toISOString();
+    }
+    return this.update(id, changes);
   }
 
   delete(id: string): Observable<void> {
-    this.persist(this.subject.value.filter((s) => s.id !== id));
-    // Los binarios de la evidencia viven en IndexedDB: si no se borran aquí
-    // quedan huérfanos ocupando la cuota del navegador para siempre.
-    return this.photos.removeForService(id).pipe(delay(120));
+    return from(
+      (async () => {
+        // Primero los archivos: si se borra la fila, las fotos quedan
+        // ocupando espacio en el bucket y ya nadie sabe a qué servicio eran.
+        await this.photos.removeForService(id);
+        const { error } = await this.sb.db.from('servicios').delete().eq('id', id);
+        if (error) { throw new Error(this.sb.mensaje(error)); }
+        await this.reload();
+      })()
+    );
   }
 }

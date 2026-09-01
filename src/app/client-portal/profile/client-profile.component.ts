@@ -1,54 +1,40 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
-import { ClientService } from '../../core/services/client.service';
-import { NotificationService } from '../../core/services/notification.service';
+import { WorkshopSettingsService } from '../../core/services/workshop-settings.service';
 import { Client } from '../../models';
 
+/**
+ * Ficha del cliente, sólo de lectura.
+ *
+ * El portal del cliente no escribe nada en la base: entra sin contraseña, con
+ * el teléfono como única credencial. Si pudiera editar su propio teléfono se
+ * dejaría fuera del sistema con un dedazo, y nadie podría devolvérselo más que
+ * el taller. Los cambios los hace el taller.
+ */
 @Component({
   selector: 'app-client-profile',
   standalone: false,
   templateUrl: './client-profile.component.html',
 })
 export class ClientProfileComponent implements OnInit {
-  private fb = inject(FormBuilder);
   private auth = inject(AuthService);
-  private clients = inject(ClientService);
-  private notify = inject(NotificationService);
+  settings = inject(WorkshopSettingsService);
 
   loading = true;
-  saving = false;
-  private clientId = this.auth.currentUser?.clientId ?? '';
-
-  form = this.fb.nonNullable.group({
-    firstName: ['', Validators.required],
-    lastName: ['', Validators.required],
-    taxId: ['', Validators.required],
-    phone: ['', Validators.required],
-    whatsapp: [''],
-    email: ['', [Validators.required, Validators.email]],
-    address: [''],
-  });
+  client: Client | null = null;
 
   ngOnInit(): void {
-    this.clients.getById(this.clientId).subscribe((c) => {
-      if (c) {
-        this.form.patchValue({
-          firstName: c.firstName, lastName: c.lastName, taxId: c.taxId,
-          phone: c.phone, whatsapp: c.whatsapp, email: c.email, address: c.address,
-        });
-      }
-      this.loading = false;
-    });
+    this.client = this.auth.portalClient;
+    this.loading = false;
   }
 
-  save(): void {
-    if (this.form.invalid || this.saving) { this.form.markAllAsTouched(); return; }
-    this.saving = true;
-    const changes: Partial<Client> = this.form.getRawValue();
-    this.clients.update(this.clientId, changes).subscribe({
-      next: () => { this.saving = false; this.notify.success('Perfil actualizado.'); },
-      error: () => { this.saving = false; this.notify.error('No se pudo actualizar el perfil.'); },
-    });
+  /** Enlace a WhatsApp del taller, para pedir una corrección. */
+  get whatsappTaller(): string {
+    const raw = (this.settings.current.phone || '').replace(/[^0-9]/g, '');
+    if (!raw) { return ''; }
+    const numero = raw.length === 8 ? '502' + raw : raw;
+    const nombre = this.client ? `${this.client.firstName} ${this.client.lastName}`.trim() : '';
+    const texto = `Hola, soy ${nombre}. Quisiera corregir mis datos en el sistema.`;
+    return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
   }
 }

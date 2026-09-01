@@ -10,6 +10,14 @@
 
   <mat-card class="tc-card" *ngIf="!loading" style="max-width:820px;">
     <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="aviso-tel">
+        <mat-icon>key</mat-icon>
+        <span>
+          El <strong>teléfono</strong> es con lo que este cliente entra a ver su vehículo.
+          No se repite entre clientes y no lleva contraseña.
+        </span>
+      </div>
+
       <div class="tc-form-grid">
         <mat-form-field>
           <mat-label>Nombres</mat-label>
@@ -19,26 +27,27 @@
         <mat-form-field>
           <mat-label>Apellidos</mat-label>
           <input matInput formControlName="lastName" />
-          <mat-error>El apellido es obligatorio.</mat-error>
         </mat-form-field>
         <mat-form-field>
           <mat-label>NIT / CF</mat-label>
           <input matInput formControlName="taxId" />
-          <mat-error>Requerido.</mat-error>
         </mat-form-field>
         <mat-form-field>
-          <mat-label>Teléfono</mat-label>
-          <input matInput formControlName="phone" />
-          <mat-error>Requerido.</mat-error>
+          <mat-label>Teléfono (con esto entra)</mat-label>
+          <input matInput formControlName="phone" type="tel" inputmode="tel" placeholder="5555 5555" />
+          <mat-icon matSuffix>key</mat-icon>
+          <mat-error *ngIf="phone.hasError('required')">El teléfono es obligatorio.</mat-error>
+          <mat-error *ngIf="phone.hasError('corto')">Debe tener al menos 8 dígitos.</mat-error>
+          <mat-hint class="repetido" *ngIf="telefonoRepetido">Ese número ya lo tiene otro cliente.</mat-hint>
         </mat-form-field>
         <mat-form-field>
-          <mat-label>WhatsApp</mat-label>
-          <input matInput formControlName="whatsapp" placeholder="502XXXXXXXX" />
+          <mat-label>WhatsApp (si es otro)</mat-label>
+          <input matInput formControlName="whatsapp" type="tel" inputmode="tel" />
+          <mat-hint>Si lo dejas vacío se usa el teléfono.</mat-hint>
         </mat-form-field>
         <mat-form-field>
-          <mat-label>Correo electrónico</mat-label>
+          <mat-label>Correo electrónico (opcional)</mat-label>
           <input matInput formControlName="email" type="email" />
-          <mat-error *ngIf="form.controls.email.hasError('required')">Requerido.</mat-error>
           <mat-error *ngIf="form.controls.email.hasError('email')">Correo no válido.</mat-error>
         </mat-form-field>
         <mat-form-field class="tc-col-span-2">

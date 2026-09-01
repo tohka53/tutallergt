@@ -1,0 +1,84 @@
+.intro { margin: -4px 0 16px; font-size: 13px; }
+
+/* ---------- Selector de período ---------- */
+.periodos {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;
+}
+.periodo {
+  border: 1px solid var(--tc-border); background: #fff; border-radius: 999px;
+  padding: 8px 16px; cursor: pointer; font-size: 13.5px; font-weight: 600;
+  color: var(--tc-text); min-height: 40px; white-space: nowrap;
+}
+.periodo:hover { border-color: var(--tc-blue); }
+.periodo.active {
+  background: var(--tc-black); border-color: var(--tc-black); color: #fff;
+}
+
+/* ---------- Tarjetas ---------- */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px; margin-bottom: 20px;
+}
+.kpi .k {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px;
+  color: var(--tc-muted); font-weight: 700;
+}
+.kpi .v { font-size: 30px; font-weight: 800; line-height: 1.15; margin: 6px 0 4px; }
+.kpi .v.cost { color: #ef6c00; }
+.kpi .v.gain { color: #2e7d32; }
+.kpi .v.loss { color: #c62828; }
+.kpi .sub { font-size: 12.5px; color: var(--tc-muted); }
+.kpi--main { border-left: 4px solid var(--tc-blue); }
+.kpi--profit { border-left: 4px solid var(--tc-yellow); }
+
+.delta { display: inline-block; margin-left: 6px; font-weight: 700; }
+.delta.up { color: #2e7d32; }
+.delta.down { color: #c62828; }
+
+/* ---------- Gráficas ---------- */
+.charts {
+  display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 20px;
+}
+.section { margin: 0 0 14px; font-size: 15px; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.switch { display: flex; gap: 4px; margin-bottom: 14px; }
+.switch button {
+  border: 1px solid var(--tc-border); background: #fff; border-radius: 8px;
+  padding: 5px 10px; font-size: 12px; cursor: pointer; min-height: 32px;
+}
+.switch button.active { background: var(--tc-yellow); border-color: var(--tc-yellow); font-weight: 700; }
+
+.col-chart {
+  display: flex; align-items: flex-end; gap: 8px; height: 210px; padding-top: 8px;
+}
+.col { flex: 1 1 0; display: flex; flex-direction: column; align-items: center; height: 100%; min-width: 0; }
+.c-val {
+  font-size: 10.5px; font-weight: 700; color: var(--tc-muted); margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.c-bar {
+  width: 100%; max-width: 46px; background: var(--tc-yellow);
+  border-radius: 6px 6px 0 0; margin-top: auto; min-height: 3px;
+}
+.c-bar.blue { background: var(--tc-blue); }
+.c-label { font-size: 11.5px; color: var(--tc-muted); margin-top: 6px; }
+
+/* ---------- Tabla ---------- */
+.gain { color: #2e7d32; }
+.loss { color: #c62828; }
+.tc-table tfoot .totales td { border-top: 2px solid var(--tc-border); padding-top: 10px; }
+
+@media (max-width: 1024px) {
+  .charts { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .periodos { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px; margin-left: -2px; }
+  .periodo { flex: 0 0 auto; }
+  .kpi .v { font-size: 26px; }
+  .col-chart { height: 180px; gap: 5px; }
+  .c-val { font-size: 9.5px; }
+  /* En móvil la tabla se convierte en tarjetas, así que el pie total
+     necesita verse como una tarjeta más y no como una fila suelta. */
+  .tc-table tfoot .totales td { border-top: none; }
+}

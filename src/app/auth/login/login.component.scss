@@ -9,14 +9,17 @@
   background: linear-gradient(135deg, #111 0%, #343a40 100%);
 }
 .login-card { width: 100%; max-width: 420px; }
-.brand { display: flex; align-items: center; gap: 14px; }
+
+/* El logo ya trae fondo negro y el nombre del taller, así que se muestra
+   entero y centrado en vez de meterlo en un cuadrito con texto al lado. */
+.brand { display: flex; justify-content: center; margin-bottom: 20px; }
 .brand .logo {
-  height: 52px; width: 52px; border-radius: 12px; background: var(--tc-yellow);
-  color: var(--tc-black); display: grid; place-items: center; font-weight: 800; font-size: 22px;
-  flex: 0 0 auto;
+  width: 100%; max-width: 300px; height: auto; border-radius: 12px; display: block;
 }
-.brand h1 { margin: 0 0 4px; font-size: 22px; color: var(--tc-black); }
-.subtitle { color: var(--tc-muted); margin: 12px 0 20px; }
+
+.lead { margin: 0 0 14px; font-size: 14px; color: var(--tc-text); }
+.hint { margin: 12px 0 0; font-size: 12.5px; color: var(--tc-muted); }
+
 .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
 .role-card {
   border: 2px solid var(--tc-border); border-radius: 12px; background: #fff; cursor: pointer;
@@ -28,18 +31,23 @@
 .role-card:hover { border-color: var(--tc-blue); }
 .role-card.active { border-color: var(--tc-yellow); background: #fffdf5; box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3); }
 .role-card.active mat-icon { color: var(--tc-black); }
-.demo-creds {
-  margin-top: 18px; padding: 12px 14px; background: var(--tc-bg-gray);
-  border-radius: 10px; font-size: 12.5px; color: var(--tc-muted);
+
+/* El aviso se queda en pantalla: los mensajes de "no tienes vehículos" o
+   "ese número no está registrado" hay que leerlos con calma, y un snackbar
+   que desaparece a los 3 segundos no alcanza. */
+.aviso {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-top: 16px; padding: 12px 14px; border-radius: 10px;
+  background: #fdecea; border: 1px solid #f5c6c0; color: #8b1f14;
+  font-size: 13.5px; line-height: 1.4;
 }
-.demo-creds p { margin: 2px 0; }
+.aviso mat-icon { flex: 0 0 auto; font-size: 20px; width: 20px; height: 20px; }
+
 button[type="submit"] { margin-top: 4px; height: 46px; }
 
 @media (max-width: 600px) {
   .login-wrap { padding: 14px; padding-bottom: calc(14px + var(--tc-safe-bottom)); }
-  .brand .logo { height: 46px; width: 46px; font-size: 19px; }
-  .brand h1 { font-size: 19px; }
-  .subtitle { margin: 10px 0 16px; font-size: 13.5px; }
+  .brand .logo { max-width: 250px; }
   .role-cards { gap: 8px; margin-bottom: 16px; }
   .role-card { padding: 12px 8px; font-size: 13px; min-height: 78px; }
 }

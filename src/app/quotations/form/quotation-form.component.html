@@ -22,7 +22,9 @@
         <mat-form-field>
           <mat-label>Vehículo</mat-label>
           <mat-select formControlName="vehicleId">
-            <mat-option *ngFor="let v of vehicleList" [value]="v.id">{{ v.brand }} {{ v.model }} — {{ v.plate }}</mat-option>
+            <mat-option *ngFor="let v of vehicleList" [value]="v.id">
+              {{ v.brand }} {{ v.line || v.model }} — {{ v.plate }}
+            </mat-option>
           </mat-select>
           <mat-error>Selecciona un vehículo.</mat-error>
         </mat-form-field>
@@ -44,6 +46,12 @@
           <mat-label>Forma de pago</mat-label>
           <input matInput formControlName="paymentMethod" />
         </mat-form-field>
+        <mat-form-field>
+          <mat-label>Anticipo</mat-label>
+          <input matInput type="number" inputmode="decimal" formControlName="advance" min="0" />
+          <span matTextPrefix>{{ settings.current.currencySymbol }}&nbsp;</span>
+          <mat-hint>Lo que ya pagó el cliente. Se resta del total.</mat-hint>
+        </mat-form-field>
         <mat-form-field class="tc-col-span-2">
           <mat-label>Consideraciones</mat-label>
           <textarea matInput formControlName="considerations" rows="2"></textarea>
@@ -53,17 +61,14 @@
           <textarea matInput formControlName="notes" rows="2"></textarea>
         </mat-form-field>
       </div>
-      <div class="tc-row" style="align-items:center;">
-        <mat-slide-toggle formControlName="applyTax" color="primary">Aplicar impuesto</mat-slide-toggle>
-        <mat-form-field style="width:160px;" *ngIf="form.controls.applyTax.value">
-          <mat-label>% de impuesto</mat-label>
-          <input matInput type="number" formControlName="taxRate" />
-        </mat-form-field>
-      </div>
     </mat-card>
 
     <mat-card class="tc-card" style="margin-bottom:16px;">
-      <h2 style="margin:0 0 12px; font-size:16px;">Artículos</h2>
+      <h2 style="margin:0 0 4px; font-size:16px;">Artículos</h2>
+      <p class="tc-muted" style="margin:0 0 12px; font-size:12.5px;">
+        <strong>Costo</strong> es lo que pagas por el repuesto y <strong>precio</strong> lo que le
+        cobras al cliente. El cliente sólo ve el precio. La mano de obra no lleva costo.
+      </p>
 
       <div class="catalog-search" style="margin-bottom:12px;">
         <mat-form-field class="tc-full">
@@ -74,14 +79,17 @@
         <div class="results" *ngIf="searchResults.length">
           <div class="result-item" *ngFor="let r of searchResults" (click)="addFromCatalog(r); searchBox.value=''">
             <span>{{ r.name }} <span class="tc-muted">({{ r.code }})</span></span>
-            <strong>{{ r.suggestedPrice | gtq }}</strong>
+            <span class="price-pair">
+              <strong>{{ r.suggestedPrice | gtq }}</strong>
+              <span class="cost" *ngIf="r.suggestedCost">costo {{ r.suggestedCost | gtq }}</span>
+            </span>
           </div>
         </div>
       </div>
 
       <div formArrayName="items" cdkDropList (cdkDropListDropped)="drop($event)">
         <div class="item-row" *ngFor="let item of items.controls; let i = index" [formGroupName]="i"
-             cdkDrag [class.labor]="item.get('type')?.value === 'labor'">
+             cdkDrag [class.labor]="isLabor(item)">
           <mat-icon class="drag-handle" cdkDragHandle>drag_indicator</mat-icon>
 
           <mat-form-field class="f-type">
@@ -102,8 +110,14 @@
             <input matInput type="number" inputmode="numeric" formControlName="quantity" min="0" />
           </mat-form-field>
 
+          <mat-form-field class="f-cost" *ngIf="!isLabor(item)">
+            <mat-label>Costo</mat-label>
+            <input matInput type="number" inputmode="decimal" formControlName="unitCost" min="0" />
+          </mat-form-field>
+          <div class="cost-hint" *ngIf="isLabor(item)">Sin costo</div>
+
           <mat-form-field class="f-price">
-            <mat-label>P. unitario</mat-label>
+            <mat-label>Precio</mat-label>
             <input matInput type="number" inputmode="decimal" formControlName="unitPrice" min="0" />
           </mat-form-field>
 
@@ -112,7 +126,12 @@
             <input matInput type="number" inputmode="decimal" formControlName="discount" min="0" />
           </mat-form-field>
 
-          <div class="item-subtotal"><span class="lbl">Subtotal</span>{{ lineSubtotal(item) | gtq }}</div>
+          <div class="item-subtotal">
+            <span class="lbl">Subtotal</span>{{ lineSubtotal(item) | gtq }}
+            <span class="profit" [class.pos]="lineProfit(item) > 0" [class.neg]="lineProfit(item) < 0">
+              ganas {{ lineProfit(item) | gtq }}
+            </span>
+          </div>
 
           <div class="item-actions">
             <button mat-icon-button type="button" (click)="duplicateItem(i)" matTooltip="Duplicar"><mat-icon>content_copy</mat-icon></button>
@@ -131,13 +150,36 @@
     </mat-card>
 
     <mat-card class="tc-card" style="margin-bottom:16px;">
-      <div class="totals-box">
-        <div class="totals-row"><span>Subtotal repuestos:</span><span>{{ totals.partsSubtotal | gtq }}</span></div>
-        <div class="totals-row"><span>Subtotal mano de obra:</span><span>{{ totals.laborSubtotal | gtq }}</span></div>
-        <div class="totals-row"><span>Descuentos:</span><span>- {{ totals.discountTotal | gtq }}</span></div>
-        <div class="totals-row" *ngIf="form.controls.applyTax.value">
-          <span>Impuesto ({{ form.controls.taxRate.value }}%):</span><span>{{ totals.taxAmount | gtq }}</span>
+      <div class="internal-box">
+        <div class="title"><mat-icon>lock</mat-icon> Sólo para ti · no sale en el PDF</div>
+        <div class="internal-grid">
+          <div class="cell">
+            <span class="k">Gastas en repuestos</span>
+            <span class="v">{{ totals.costTotal | gtq }}</span>
+          </div>
+          <div class="cell">
+            <span class="k">Mano de obra</span>
+            <span class="v">{{ totals.laborSubtotal | gtq }}</span>
+          </div>
+          <div class="cell">
+            <span class="k">Ganancia</span>
+            <span class="v" [class.gain]="totals.profit > 0" [class.loss]="totals.profit < 0">
+              {{ totals.profit | gtq }}
+            </span>
+          </div>
+          <div class="cell">
+            <span class="k">Margen</span>
+            <span class="v" [class.gain]="marginPct > 0" [class.loss]="marginPct < 0">{{ marginPct }}%</span>
+          </div>
         </div>
+      </div>
+
+      <div class="totals-box">
+        <div class="totals-row"><span>Repuestos y materiales:</span><span>{{ totals.partsSubtotal | gtq }}</span></div>
+        <div class="totals-row"><span>Mano de obra:</span><span>{{ totals.laborSubtotal | gtq }}</span></div>
+        <div class="totals-row"><span>Descuentos:</span><span>- {{ totals.discountTotal | gtq }}</span></div>
+        <div class="totals-row"><span>Subtotal:</span><span>{{ totals.subtotal | gtq }}</span></div>
+        <div class="totals-row" *ngIf="totals.advance"><span>Anticipo:</span><span>- {{ totals.advance | gtq }}</span></div>
         <div class="totals-row grand"><span>TOTAL:</span><span>{{ totals.total | gtq }}</span></div>
       </div>
     </mat-card>
@@ -148,7 +190,7 @@
         <mat-icon>save</mat-icon> Guardar borrador
       </button>
       <button mat-raised-button class="tc-btn-primary" type="button" (click)="save('sent')" [disabled]="saving">
-        <mat-icon>send</mat-icon> Guardar y marcar enviada
+        <mat-icon>check</mat-icon> Guardar y marcar enviada
       </button>
     </div>
   </form>

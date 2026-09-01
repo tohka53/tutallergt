@@ -22,6 +22,7 @@ const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', loadChildren: () => import('./dashboard/dashboard.module').then((m) => m.DashboardModule) },
+      { path: 'metrics', loadChildren: () => import('./metrics/metrics.module').then((m) => m.MetricsModule) },
       { path: 'clients', loadChildren: () => import('./clients/clients.module').then((m) => m.ClientsModule) },
       { path: 'vehicles', loadChildren: () => import('./vehicles/vehicles.module').then((m) => m.VehiclesModule) },
       { path: 'quotations', loadChildren: () => import('./quotations/quotations.module').then((m) => m.QuotationsModule) },

@@ -1,7 +1,7 @@
 {
-  "name": "control-taller",
+  "name": "mundo-garage",
   "version": "1.0.0",
-  "description": "Taller Control - Sistema de administración y control de taller mecánico (demo sin backend)",
+  "description": "Mundo Garage - control de vehículos, clientes y cotizaciones del taller (Angular + Supabase)",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -15,7 +15,9 @@
     "audit:visual": "node tools/visual-audit.cjs",
     "audit:mobile": "node tools/mobile-scroll-audit.cjs",
     "audit:dialogs": "node tools/dialog-audit.cjs",
-    "audit:photos": "node tools/photos-e2e.cjs"
+    "audit:photos": "node tools/photos-e2e.cjs",
+    "audit:pdf": "node tools/pdf-preview.cjs",
+    "audit:pdf:largo": "node tools/pdf-preview.cjs --largo"
   },
   "private": true,
   "dependencies": {
@@ -30,6 +32,7 @@
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
     "@fontsource/roboto": "^5.3.0",
+    "@supabase/supabase-js": "^2.112.4",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "material-icons": "^1.13.14",

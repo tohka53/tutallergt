@@ -1,13 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable, from, of, throwError } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { MAX_SERVICE_PHOTOS, ServicePhoto } from '../../models';
-import { StorageService } from './storage.service';
-import { IndexedDbService } from './indexed-db.service';
-import { WorkshopSettingsService } from './workshop-settings.service';
+import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
+import { WorkshopSettingsService } from './workshop-settings.service';
 import { downscaleImage } from './image.util';
 import { uuid } from './id.util';
+import { toPhoto } from './mappers';
+import { environment } from '../../../environments/environment';
 
 /**
  * No se acepta HEIC/HEIF: Chrome y Firefox no saben dibujarlo, así que la foto
@@ -21,30 +22,42 @@ const ALLOWED_MIME = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 export const SERVICE_PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp';
 
 /**
- * Fotos de evidencia de los servicios. Los metadatos van a localStorage (via
- * StorageService) y el binario a IndexedDB, igual que VehicleDocumentService.
+ * Fotos de evidencia. Los metadatos van a la tabla `servicio_fotos` y el
+ * archivo al bucket PÚBLICO "evidencias".
  *
- * PRODUCCIÓN: reemplazar IndexedDbService por Supabase/S3 y este servicio por
- * llamadas a la API. Los componentes sólo dependen de la interfaz pública.
+ * Público a propósito: el cliente entra sin sesión, así que no puede firmar
+ * una URL temporal. Las rutas llevan uuid, no son adivinables, y lo que
+ * contienen son fotos de piezas de carro. La tarjeta de circulación, que sí es
+ * un dato personal, va en un bucket privado aparte (ver VehicleDocumentService).
  */
 @Injectable({ providedIn: 'root' })
 export class ServicePhotoService {
-  private storage = inject(StorageService);
-  private idb = inject(IndexedDbService);
-  private settings = inject(WorkshopSettingsService);
+  private sb = inject(SupabaseService);
   private auth = inject(AuthService);
+  private settings = inject(WorkshopSettingsService);
 
-  private readonly key = 'service-photos';
-  private subject = new BehaviorSubject<ServicePhoto[]>(
-    this.storage.get<ServicePhoto[]>(this.key, [])
-  );
+  private readonly bucket = environment.bucketEvidencias;
+  private subject = new BehaviorSubject<ServicePhoto[]>([]);
 
   readonly photos$ = this.subject.asObservable();
   readonly max = MAX_SERVICE_PHOTOS;
 
-  private persist(items: ServicePhoto[]): void {
-    this.storage.set(this.key, items);
-    this.subject.next(items);
+  get snapshot(): ServicePhoto[] { return this.subject.value; }
+  setAll(items: ServicePhoto[]): void { this.subject.next(items); }
+  clear(): void { this.subject.next([]); }
+
+  publicUrl(path: string): string {
+    if (!path) { return ''; }
+    return this.sb.db.storage.from(this.bucket).getPublicUrl(path).data.publicUrl;
+  }
+
+  async reload(): Promise<void> {
+    const { data, error } = await this.sb.db
+      .from('servicio_fotos')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (error) { throw new Error(this.sb.mensaje(error)); }
+    this.subject.next((data ?? []).map((r) => toPhoto(r, (p) => this.publicUrl(p))));
   }
 
   private forService(list: ServicePhoto[], serviceId: string): ServicePhoto[] {
@@ -53,12 +66,10 @@ export class ServicePhotoService {
       .sort((a, b) => a.uploadedAt.localeCompare(b.uploadedAt));
   }
 
-  /** Fotos de un servicio, en orden de carga. Se reemite en cada cambio. */
   listForService(serviceId: string): Observable<ServicePhoto[]> {
     return this.photos$.pipe(map((list) => this.forService(list, serviceId)));
   }
 
-  /** Cuántas fotos tiene cada servicio, para pintar contadores en listados. */
   countsByService(): Observable<Record<string, number>> {
     return this.photos$.pipe(
       map((list) =>
@@ -72,6 +83,10 @@ export class ServicePhotoService {
 
   countFor(serviceId: string): number {
     return this.subject.value.filter((p) => p.serviceId === serviceId).length;
+  }
+
+  remainingSlots(serviceId: string): number {
+    return Math.max(0, MAX_SERVICE_PHOTOS - this.countFor(serviceId));
   }
 
   /** Valida tipo MIME real, tamaño y cupo. Devuelve el error o null. */
@@ -89,75 +104,88 @@ export class ServicePhotoService {
     return null;
   }
 
-  /** Cuántas fotos más caben en este servicio. */
-  remainingSlots(serviceId: string): number {
-    return Math.max(0, MAX_SERVICE_PHOTOS - this.countFor(serviceId));
-  }
-
   upload(serviceId: string, file: File, caption = ''): Observable<ServicePhoto> {
     const error = this.validate(serviceId, file);
     if (error) { return throwError(() => new Error(error)); }
+    return from(this.uploadAsync(serviceId, file, caption));
+  }
 
-    const user = this.auth.currentUser;
-    const blobKey = 'svc-photo-' + uuid();
+  private async uploadAsync(serviceId: string, file: File, caption: string): Promise<ServicePhoto> {
+    const mecanicoId = this.auth.mechanicId;
+    if (!mecanicoId) { throw new Error('Sólo el mecánico puede subir fotos.'); }
 
-    // Se reduce antes de guardar; si falla, downscaleImage devuelve el original.
-    return from(downscaleImage(file)).pipe(
-      switchMap((optimized) =>
-        from(this.idb.saveBlob(blobKey, optimized)).pipe(map(() => optimized))
-      ),
-      map((stored) => {
-        const photo: ServicePhoto = {
-          id: uuid(),
-          serviceId,
-          caption: caption.trim(),
-          fileName: stored.name,
-          mimeType: stored.type,
-          size: stored.size,
-          blobKey,
-          uploadedAt: new Date().toISOString(),
-          uploadedById: user?.id ?? 'system',
-          uploadedByName: user?.displayName ?? 'Mecánico',
-        };
-        this.persist([...this.subject.value, photo]);
-        return photo;
+    // Se reduce antes de subir; si falla, downscaleImage devuelve el original.
+    const optimized = await downscaleImage(file);
+    const path = `${mecanicoId}/${serviceId}/${uuid()}.jpg`;
+
+    const up = await this.sb.db.storage
+      .from(this.bucket)
+      .upload(path, optimized, { contentType: optimized.type || 'image/jpeg', upsert: false });
+    if (up.error) { throw new Error(this.sb.mensaje(up.error)); }
+
+    const { data: row, error } = await this.sb.db
+      .from('servicio_fotos')
+      .insert({
+        servicio_id: serviceId,
+        mecanico_id: mecanicoId,
+        nota: caption.trim(),
+        ruta: path,
+        nombre: optimized.name,
+        tamano: optimized.size,
       })
-    );
+      .select()
+      .single();
+
+    if (error || !row) {
+      // La fila no se guardó: se quita el archivo para no dejar basura suelta.
+      await this.sb.db.storage.from(this.bucket).remove([path]).catch(() => undefined);
+      throw new Error(this.sb.mensaje(error));
+    }
+
+    await this.reload();
+    return toPhoto(row, (p) => this.publicUrl(p));
   }
 
   updateCaption(id: string, caption: string): Observable<void> {
-    this.persist(
-      this.subject.value.map((p) => (p.id === id ? { ...p, caption: caption.trim() } : p))
+    return from(
+      (async () => {
+        const { error } = await this.sb.db
+          .from('servicio_fotos')
+          .update({ nota: caption.trim() })
+          .eq('id', id);
+        if (error) { throw new Error(this.sb.mensaje(error)); }
+        await this.reload();
+      })()
     );
-    return of(void 0);
   }
 
-  /** Devuelve un object URL. Quien lo pide DEBE liberarlo con revokeObjectURL. */
+  /** El bucket es público, así que la URL sirve directo en un <img>. */
   getObjectUrl(photo: ServicePhoto): Observable<string> {
-    return from(this.idb.getBlob(photo.blobKey)).pipe(
-      map((blob) => {
-        if (!blob) { throw new Error('Imagen no encontrada.'); }
-        return URL.createObjectURL(blob);
-      })
-    );
+    return of(photo.url || this.publicUrl(photo.path));
   }
 
   remove(photo: ServicePhoto): Observable<void> {
-    return from(this.idb.deleteBlob(photo.blobKey)).pipe(
-      map(() => {
-        this.persist(this.subject.value.filter((p) => p.id !== photo.id));
-      })
+    return from(
+      (async () => {
+        const { error } = await this.sb.db.from('servicio_fotos').delete().eq('id', photo.id);
+        if (error) { throw new Error(this.sb.mensaje(error)); }
+        await this.sb.db.storage.from(this.bucket).remove([photo.path]).catch(() => undefined);
+        await this.reload();
+      })()
     );
   }
 
-  /** Se llama al eliminar un servicio, para no dejar blobs huérfanos. */
+  /** Se llama al eliminar un servicio, para no dejar archivos huérfanos. */
   removeForService(serviceId: string): Observable<void> {
     const doomed = this.subject.value.filter((p) => p.serviceId === serviceId);
     if (!doomed.length) { return of(void 0); }
-    return from(Promise.all(doomed.map((p) => this.idb.deleteBlob(p.blobKey)))).pipe(
-      map(() => {
-        this.persist(this.subject.value.filter((p) => p.serviceId !== serviceId));
-      })
+    return from(
+      (async () => {
+        await this.sb.db.storage.from(this.bucket).remove(doomed.map((p) => p.path))
+          .catch(() => undefined);
+        await this.sb.db.from('servicio_fotos').delete().eq('servicio_id', serviceId);
+        this.subject.next(this.subject.value.filter((p) => p.serviceId !== serviceId));
+      })()
     );
   }
 }

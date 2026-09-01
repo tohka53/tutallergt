@@ -1,10 +1,10 @@
 /**
  * Foto de evidencia de un servicio: cómo se encontró la pieza antes de
- * cambiarla. El binario NO se guarda aquí: vive en IndexedDB (ver
- * IndexedDbService) referenciado por blobKey, igual que la tarjeta de
- * circulación.
+ * cambiarla. El archivo vive en el bucket público "evidencias" de Supabase
+ * Storage; aquí sólo se guarda la ruta y la nota del mecánico.
  *
- * El cliente ve estas fotos en el detalle de su servicio.
+ * El cliente ve estas fotos en el detalle de su servicio, por eso el bucket
+ * es público: el cliente no tiene sesión y no podría firmar una URL.
  */
 export interface ServicePhoto {
   id: string;
@@ -12,12 +12,12 @@ export interface ServicePhoto {
   /** Nota corta del mecánico: "balatas al límite", "rotor rayado", etc. */
   caption: string;
   fileName: string;
-  mimeType: string;
   size: number;
-  blobKey: string; // clave en IndexedDB
+  /** Ruta dentro del bucket, p. ej. "<mecanicoId>/<servicioId>/<uuid>.jpg" */
+  path: string;
+  /** URL pública lista para usar en un <img>. */
+  url: string;
   uploadedAt: string; // ISO
-  uploadedById: string;
-  uploadedByName: string;
 }
 
 /** Máximo de fotos de evidencia por orden de servicio. */

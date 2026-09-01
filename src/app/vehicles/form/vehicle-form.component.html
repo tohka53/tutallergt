@@ -56,8 +56,14 @@
           <input matInput formControlName="customModel" />
         </mat-form-field>
 
+        <mat-form-field class="tc-col-span-2">
+          <mat-label>Línea completa (como sale en la cotización)</mat-label>
+          <input matInput formControlName="line" placeholder="CR-V LX 4WD" />
+          <mat-hint>Opcional. Si lo dejas vacío se usa el modelo.</mat-hint>
+        </mat-form-field>
+
         <mat-form-field>
-          <mat-label>Año</mat-label>
+          <mat-label>Año (en la cotización va como "MODELO")</mat-label>
           <input matInput type="number" formControlName="year" />
           <mat-error *ngIf="form.controls.year.hasError('required')">Requerido.</mat-error>
           <mat-error *ngIf="form.controls.year.hasError('min') || form.controls.year.hasError('max')">

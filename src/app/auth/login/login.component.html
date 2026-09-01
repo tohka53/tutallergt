@@ -1,28 +1,46 @@
 <div class="login-wrap">
   <div class="login-card tc-card">
     <div class="brand">
-      <span class="logo">TC</span>
-      <div>
-        <h1>Taller Control</h1>
-        <span class="tc-demo-badge">MODO DEMOSTRACIÓN</span>
-      </div>
+      <img class="logo" [src]="settings.logoSrc" alt="Mundo Garage" />
     </div>
-    <p class="subtitle">Administración y control de taller mecánico</p>
-
     <div class="role-cards">
-      <button type="button" class="role-card" [class.active]="selectedRole === 'mechanic'"
-              (click)="selectRole('mechanic')">
-        <mat-icon>engineering</mat-icon>
-        <span>Ingresar como mecánico</span>
+      <button type="button" class="role-card" [class.active]="modo === 'client'"
+              (click)="cambiarModo('client')">
+        <mat-icon>directions_car</mat-icon>
+        <span>Soy cliente</span>
       </button>
-      <button type="button" class="role-card" [class.active]="selectedRole === 'client'"
-              (click)="selectRole('client')">
-        <mat-icon>person</mat-icon>
-        <span>Ingresar como cliente</span>
+      <button type="button" class="role-card" [class.active]="modo === 'mechanic'"
+              (click)="cambiarModo('mechanic')">
+        <mat-icon>engineering</mat-icon>
+        <span>Soy del taller</span>
       </button>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <!-- ===== Cliente: sólo el teléfono ===== -->
+    <form *ngIf="modo === 'client'" [formGroup]="phoneForm" (ngSubmit)="entrarCliente()" novalidate>
+      <p class="lead">Escribe el número de teléfono que le diste al taller.</p>
+
+      <mat-form-field class="tc-full">
+        <mat-label>Número de teléfono</mat-label>
+        <input matInput formControlName="phone" type="tel" inputmode="tel"
+               autocomplete="tel" placeholder="5555 5555" />
+        <mat-icon matSuffix>phone_iphone</mat-icon>
+        <mat-error *ngIf="phone.hasError('required')">Escribe tu número.</mat-error>
+        <mat-error *ngIf="phone.hasError('pattern')">Número no válido.</mat-error>
+      </mat-form-field>
+
+      <button mat-raised-button class="tc-btn-primary tc-full" type="submit" [disabled]="loading">
+        <mat-icon *ngIf="!loading">login</mat-icon>
+        <mat-progress-spinner *ngIf="loading" diameter="20" mode="indeterminate" style="display:inline-block;">
+        </mat-progress-spinner>
+        <span style="margin-left:6px;">{{ loading ? 'Entrando...' : 'Ver mi vehículo' }}</span>
+      </button>
+
+      <p class="hint">No necesitas contraseña. Si tu número no funciona, pídele al taller que te registre.</p>
+    </form>
+
+    <!-- ===== Mecánico: correo y contraseña ===== -->
+    <form *ngIf="modo === 'mechanic'" [formGroup]="mechanicForm" (ngSubmit)="entrarMecanico()" novalidate>
       <mat-form-field class="tc-full">
         <mat-label>Correo electrónico</mat-label>
         <input matInput formControlName="email" type="email" autocomplete="username" />
@@ -51,10 +69,9 @@
       </button>
     </form>
 
-    <div class="demo-creds">
-      <p><strong>Credenciales de demostración</strong></p>
-      <p>Mecánico: mecanico&#64;demo.com / Demo123!</p>
-      <p>Cliente: cliente&#64;demo.com / Demo123!</p>
+    <div class="aviso" *ngIf="aviso">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ aviso }}</span>
     </div>
   </div>
 </div>

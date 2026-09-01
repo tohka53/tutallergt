@@ -189,11 +189,29 @@ table.tc-table { width: 100%; }
 .tc-snack-error{ --mdc-snackbar-container-color: #c62828; }
 .tc-snack-info { --mdc-snackbar-container-color: #1565c0; }
 
-.tc-demo-badge {
-  background: var(--tc-yellow); color: var(--tc-black);
-  font-weight: 700; font-size: 11px; padding: 2px 8px; border-radius: 6px;
-  letter-spacing: 0.3px;
+/* Aviso amarillo para explicar algo importante dentro de un formulario.
+   Se usa, por ejemplo, para decir que el teléfono del cliente es su llave
+   de acceso al portal. */
+.aviso-tel {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: #fffdf5; border: 1px solid #ffe08a; border-radius: 10px;
+  padding: 12px 14px; margin-bottom: 18px; font-size: 13px; line-height: 1.4;
 }
+.aviso-tel mat-icon {
+  color: #b8860b; flex: 0 0 auto; font-size: 20px; width: 20px; height: 20px;
+}
+
+/* Estado de acceso al portal en la ficha del cliente. */
+.acceso {
+  display: flex; align-items: flex-start; gap: 9px; margin-top: 14px;
+  padding: 10px 13px; border-radius: 10px; font-size: 13px; line-height: 1.4;
+  background: #f4f6f8; border: 1px solid var(--tc-border); color: var(--tc-muted);
+}
+.acceso.ok { background: #edf7ee; border-color: #bfe0c2; color: #2e5c34; }
+.acceso mat-icon { flex: 0 0 auto; font-size: 19px; width: 19px; height: 19px; }
+
+/* Pista de campo en rojo (p. ej. teléfono ya usado por otro cliente). */
+.mat-mdc-form-field-hint.repetido { color: #c62828; font-weight: 600; }
 
 .tc-form-grid {
   display: grid; gap: 8px 16px;

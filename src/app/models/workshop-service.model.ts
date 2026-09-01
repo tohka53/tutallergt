@@ -15,9 +15,12 @@ export interface WorkshopServiceItem {
   code?: string;
   name: string;
   quantity: number;
+  /** Costo para el taller. No se muestra al cliente. */
+  unitCost: number;
   unitPrice: number;
   discount: number;
   subtotal: number;
+  costSubtotal: number;
 }
 
 export interface ServiceStatusHistory {
@@ -36,8 +39,6 @@ export interface WorkshopService {
   clientId: string;
   vehicleId: string;
   quotationId?: string;
-  /** copia histórica del total de la cotización al momento de convertir */
-  quotationSnapshotTotal?: number;
 
   entryDate: string; // ISO
   estimatedDelivery?: string;
@@ -54,6 +55,8 @@ export interface WorkshopService {
 
   items: WorkshopServiceItem[];
   total: number;
+  /** Lo que costaron los repuestos. Sólo para el mecánico. */
+  costTotal: number;
 
   mechanicName: string;
   status: ServiceStatus;

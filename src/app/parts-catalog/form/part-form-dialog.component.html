@@ -27,8 +27,13 @@
           <mat-option *ngFor="let c of catalog.categories" [value]="c">{{ c }}</mat-option>
         </mat-select>
       </mat-form-field>
+      <mat-form-field *ngIf="form.controls.type.value !== 'labor'">
+        <mat-label>Costo (lo que pagas)</mat-label>
+        <input matInput type="number" formControlName="suggestedCost" />
+        <mat-hint>No lo ve el cliente.</mat-hint>
+      </mat-form-field>
       <mat-form-field>
-        <mat-label>Precio sugerido (Q)</mat-label>
+        <mat-label>Precio al cliente (Q)</mat-label>
         <input matInput type="number" formControlName="suggestedPrice" />
         <mat-error>Precio inválido.</mat-error>
       </mat-form-field>

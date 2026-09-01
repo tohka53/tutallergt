@@ -4,6 +4,7 @@ import { Subscription, filter } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ResponsiveService } from '../../services/responsive.service';
 import { WorkshopSettingsService } from '../../services/workshop-settings.service';
+import { DataSyncService } from '../../services/data-sync.service';
 
 interface NavItem { label: string; icon: string; link: string; }
 
@@ -18,6 +19,7 @@ export class ClientLayoutComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private responsive = inject(ResponsiveService);
   settings = inject(WorkshopSettingsService);
+  private sync = inject(DataSyncService);
 
   /** true cuando el menú lateral debe comportarse como cajón superpuesto. */
   compactNav = false;
@@ -31,7 +33,7 @@ export class ClientLayoutComponent implements OnInit, OnDestroy {
 
   nav: NavItem[] = [
     { label: 'Inicio', icon: 'dashboard', link: '/portal/dashboard' },
-    { label: 'Mi perfil', icon: 'person', link: '/portal/profile' },
+    { label: 'Mis datos', icon: 'person', link: '/portal/profile' },
     { label: 'Mis vehículos', icon: 'directions_car', link: '/portal/vehicles' },
     { label: 'Mis cotizaciones', icon: 'request_quote', link: '/portal/quotations' },
     { label: 'Mis servicios', icon: 'build', link: '/portal/services' },
@@ -60,8 +62,9 @@ export class ClientLayoutComponent implements OnInit, OnDestroy {
     else { this.collapsed = !this.collapsed; }
   }
 
-  logout(): void {
-    this.auth.logout();
+  async logout(): Promise<void> {
+    await this.auth.logout();
+    this.sync.clearAll();
     this.router.navigate(['/auth/login']);
   }
 }
