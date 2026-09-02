@@ -89,24 +89,40 @@ describe('QuotationDeliveryService', () => {
       expect(url.startsWith('https://wa.me/?text=')).toBe(true);
     });
 
-    it('avisa cuando el navegador bloqueó la ventana y devuelve el enlace', () => {
-      // Un bloqueador de ventanas emergentes devuelve null.
-      spyOn(window, 'open').and.returnValue(null);
+    it('abre con un enlace de verdad, NO con window.open', () => {
+      // window.open puede quedar bloqueado en silencio: sin error y sin pestaña.
+      const emergente = spyOn(window, 'open');
+      let clicado: HTMLAnchorElement | null = null;
+      const crear = document.createElement.bind(document);
+      spyOn(document, 'createElement').and.callFake(((tag: string) => {
+        const el = crear(tag);
+        if (tag === 'a') {
+          clicado = el as HTMLAnchorElement;
+          spyOn(el, 'click');
+        }
+        return el;
+      }) as typeof document.createElement);
+
       const r = service.openWhatsApp(quotation, client, vehicle);
-      expect(r.outcome).toBe('blocked');
-      expect(r.url).toContain('wa.me');
+
+      expect(emergente).not.toHaveBeenCalled();
+      expect(clicado!.click).toHaveBeenCalled();
+      expect(clicado!.href).toContain('wa.me/50231766741');
+      expect(clicado!.target).toBe('_blank');
+      expect(r.outcome).toBe('opened');
     });
 
-    it('reporta éxito cuando la ventana sí abrió', () => {
-      spyOn(window, 'open').and.returnValue({ closed: false } as Window);
-      expect(service.openWhatsApp(quotation, client, vehicle).outcome).toBe('opened');
+    it('devuelve el enlace para poder dejarlo a la vista después de enviar', () => {
+      spyOn(window, 'open');
+      const r = service.openWhatsApp(quotation, client, vehicle);
+      expect(r.url).toContain('wa.me/50231766741');
     });
 
-    it('NO pasa "noopener": con esa opción window.open siempre devuelve null y todo parecería bloqueado', () => {
-      const abrir = spyOn(window, 'open').and.returnValue({ closed: false } as Window);
+    it('no deja el enlace pegado en el documento', () => {
+      spyOn(window, 'open');
+      const antes = document.querySelectorAll('a').length;
       service.openWhatsApp(quotation, client, vehicle);
-      const features = abrir.calls.mostRecent().args[2];
-      expect(features).toBeUndefined();
+      expect(document.querySelectorAll('a').length).toBe(antes);
     });
   });
 

@@ -158,28 +158,38 @@ export class QuotationDeliveryService {
 
   /**
    * Computadora: abre WhatsApp Web con el mensaje ya escrito.
-   * Síncrono a propósito. Si el navegador bloqueó la ventana emergente lo
-   * decimos, en vez de dejar al mecánico esperando algo que nunca pasó.
+   *
+   * Se hace con un enlace de verdad (`<a target="_blank">`) y no con
+   * `window.open`. Why: el navegador trata el clic sobre un enlace como
+   * navegación normal, mientras que una ventana emergente puede quedar
+   * bloqueada por la configuración del sitio, por una extensión o por el
+   * sistema — y en Chrome eso pasa en silencio: sin error y sin pestaña. Con
+   * un enlace no hay ventana emergente que bloquear.
+   *
+   * Aun así se devuelve la `url`, porque la pantalla SIEMPRE muestra el enlace
+   * a la vista después de enviar. Si algo se lo tragó, hay dónde hacer clic en
+   * vez de quedarse mirando un botón que "no hace nada".
    */
   openWhatsApp(quotation: Quotation, client: Client, vehicle: Vehicle): DeliveryResult {
     const url = this.whatsappUrl(quotation, client, vehicle);
-    // Sin 'noopener' a propósito: con esa opción window.open devuelve null
-    // SIEMPRE, aunque la ventana se haya abierto bien, y no habría forma de
-    // distinguir "abrió" de "el navegador lo bloqueó".
-    const win = window.open(url, '_blank');
-
-    if (!win || win.closed) {
-      return {
-        outcome: 'blocked',
-        message: 'El navegador bloqueó la ventana de WhatsApp.',
-        url,
-      };
-    }
+    this.abrirEnlace(url);
     return {
       outcome: 'opened',
       message: 'Se abrió WhatsApp con el mensaje escrito. Adjunta el PDF descargado.',
       url,
     };
+  }
+
+  /** Crea un enlace, lo pulsa y lo quita. Más confiable que window.open. */
+  private abrirEnlace(url: string): void {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 
   /** Descarga el PDF. Va después de abrir WhatsApp: esto sí puede esperar. */

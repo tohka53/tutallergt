@@ -38,16 +38,25 @@
         </div>
       </div>
 
-      <!-- Respaldo cuando Chrome bloquea la ventana emergente: un enlace de la
-           página siempre se puede abrir, una ventana emergente no. -->
+      <!-- Se muestra SIEMPRE después de enviar, no sólo cuando algo falla: si
+           el navegador se tragó la pestaña, un aviso que sólo aparece "cuando
+           detecta el error" tampoco aparecería. -->
       <div class="respaldo" *ngIf="enlaceRespaldo">
-        <mat-icon>open_in_new</mat-icon>
-        <div>
-          <div class="t">Tu navegador bloqueó la ventana de WhatsApp.</div>
-          <a [href]="enlaceRespaldo" target="_blank" rel="noopener" (click)="respaldoAbierto()">
-            Abrir WhatsApp con el mensaje
-          </a>
+        <mat-icon>chat</mat-icon>
+        <div class="cuerpo">
+          <div class="t">¿No se abrió WhatsApp?</div>
+          <div class="acciones">
+            <a mat-stroked-button [href]="enlaceRespaldo" target="_blank" rel="noopener noreferrer">
+              <mat-icon>open_in_new</mat-icon> Abrir WhatsApp
+            </a>
+            <button mat-stroked-button type="button" (click)="downloadPdf()">
+              <mat-icon>download</mat-icon> Descargar el PDF otra vez
+            </button>
+          </div>
         </div>
+        <button mat-icon-button type="button" (click)="ocultarRespaldo()" aria-label="Ocultar">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
 
       <p class="tc-muted send-hint" *ngIf="isMechanic" style="margin:10px 0 0; font-size:12.5px;">

@@ -156,10 +156,17 @@ export class QuotationDetailComponent implements OnInit {
       return;
     }
     if (r.outcome === 'blocked') {
-      // Un enlace en la página siempre se puede abrir; una ventana emergente no.
       this.enlaceRespaldo = r.url ?? '';
       this.notify.error('El navegador bloqueó la ventana. Usa el enlace que apareció abajo del botón.');
       return;
+    }
+    // En la computadora el enlace se deja SIEMPRE a la vista, no sólo cuando
+    // se detecta un bloqueo. Un aviso que sólo aparece "cuando falla" no sirve
+    // si el fallo es justamente que no se entera nadie: extensiones, bloqueo
+    // de ventanas o el navegador cambiando a la app de WhatsApp dejan al
+    // mecánico mirando un botón que aparentemente no hizo nada.
+    if (r.outcome === 'opened' && r.url) {
+      this.enlaceRespaldo = r.url;
     }
     this.notify.success(r.message);
     this.marcarEnviada();
@@ -170,13 +177,9 @@ export class QuotationDetailComponent implements OnInit {
     this.quotations.setStatus(this.quotation.id, 'sent').subscribe({ error: () => undefined });
   }
 
-  /** Se llama desde el enlace de respaldo: ya se abrió, se limpia el aviso. */
-  respaldoAbierto(): void {
+  /** El mecánico ya no necesita el bloque de respaldo. */
+  ocultarRespaldo(): void {
     this.enlaceRespaldo = '';
-    if (this.quotation && this.client && this.vehicle) {
-      this.delivery.downloadPdf(this.quotation, this.client, this.vehicle).catch(() => undefined);
-    }
-    this.marcarEnviada();
   }
 
   markAccepted(): void {
