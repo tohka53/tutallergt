@@ -38,10 +38,27 @@
         </div>
       </div>
 
+      <!-- Respaldo cuando Chrome bloquea la ventana emergente: un enlace de la
+           página siempre se puede abrir, una ventana emergente no. -->
+      <div class="respaldo" *ngIf="enlaceRespaldo">
+        <mat-icon>open_in_new</mat-icon>
+        <div>
+          <div class="t">Tu navegador bloqueó la ventana de WhatsApp.</div>
+          <a [href]="enlaceRespaldo" target="_blank" rel="noopener" (click)="respaldoAbierto()">
+            Abrir WhatsApp con el mensaje
+          </a>
+        </div>
+      </div>
+
       <p class="tc-muted send-hint" *ngIf="isMechanic" style="margin:10px 0 0; font-size:12.5px;">
         <mat-icon style="font-size:15px;width:15px;height:15px;vertical-align:-2px;">info</mat-icon>
-        Desde el teléfono, «Enviar cotización» abre WhatsApp con el PDF ya adjunto. Desde la
-        computadora descarga el PDF y abre WhatsApp Web con el mensaje escrito.
+        <ng-container *ngIf="numeroDestino">Se manda al +{{ numeroDestino }}. </ng-container>
+        <ng-container *ngIf="!numeroDestino">
+          Este cliente no tiene número guardado: WhatsApp abrirá con el mensaje para que elijas el
+          contacto.
+        </ng-container>
+        Desde el teléfono se adjunta el PDF solo; desde la computadora se descarga y lo arrastras
+        al chat.
       </p>
 
       <div *ngIf="quotation.convertedServiceId" style="margin-top:12px;">

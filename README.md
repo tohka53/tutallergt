@@ -110,20 +110,31 @@ con letra.
 > En la base, `vehiculos.modelo` es el nombre del modelo, `vehiculos.linea` el texto
 > largo que sale en el PDF y `vehiculos.anio` el año.
 
-El botón **Enviar cotización** del detalle:
+El botón **Enviar cotización** del detalle hace dos cosas distintas según dónde estés:
 
-1. Genera el PDF.
-2. Intenta el selector del sistema (Web Share API con archivos). **En el teléfono esto
-   abre WhatsApp con el PDF ya adjunto y el mensaje escrito**, que es donde el mecánico
-   realmente usa esto.
-3. Si el navegador no puede compartir archivos (computadoras), descarga el PDF y abre
-   WhatsApp Web con el mensaje listo: sólo falta arrastrar el archivo.
+- **Teléfono o tablet**: abre el selector del sistema con el **PDF ya adjunto** y el
+  mensaje escrito. Eliges WhatsApp y sólo te queda darle enviar.
+- **Computadora**: abre **WhatsApp Web** con el mensaje escrito y descarga el PDF para que
+  lo arrastres al chat.
 
 El mensaje dice *"Hola {nombre}, tu cotización para {marca} {línea} {año} (placa
 {placa})"*, con el número y el total.
 
-WhatsApp **no** permite adjuntar un archivo desde un enlace `wa.me`: sólo texto. Por eso
-el camino bueno es el selector del sistema y no hay forma de saltárselo.
+Tres cosas que hacen esto más delicado de lo que parece, y que ya están resueltas:
+
+1. **WhatsApp no permite adjuntar un archivo desde un enlace `wa.me`**, sólo texto. La
+   única forma de que el PDF viaje en el mismo mensaje es el selector del sistema.
+2. **En la computadora no se usa el selector del sistema aunque el navegador lo tenga.**
+   Chrome de macOS y de Windows implementan `navigator.share` con archivos, pero abren el
+   panel de compartir del sistema operativo, donde WhatsApp casi nunca aparece como
+   destino. Por eso `esDispositivoTactil()` decide el camino: si no es táctil, WhatsApp
+   Web y punto.
+3. **El envío es síncrono a propósito.** `navigator.share()` y `window.open()` sólo
+   funcionan mientras el navegador cree que está atendiendo un clic. El PDF se prepara al
+   cargar la pantalla (`prepareFile`), no al hacer clic, para que entre el clic y la
+   llamada al navegador no haya ningún `await`. Si aun así el navegador bloquea la
+   ventana, aparece un enlace visible debajo del botón — un enlace de la página siempre se
+   puede abrir, una ventana emergente no.
 
 Para ver cómo queda el PDF sin levantar la app:
 

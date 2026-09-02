@@ -7,7 +7,7 @@ import { ClientService } from '../../core/services/client.service';
 import { VehicleService } from '../../core/services/vehicle.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { QuotationDeliveryService } from '../../core/services/quotation-delivery.service';
+import { DeliveryResult, QuotationDeliveryService } from '../../core/services/quotation-delivery.service';
 import { QuotationPdfService } from '../../core/services/quotation-pdf.service';
 import { amountInWords } from '../../core/services/number-to-words.util';
 import { Client, Quotation, Vehicle } from '../../models';
@@ -45,6 +45,20 @@ export class QuotationDetailComponent implements OnInit {
 
   qLabel = QUOTATION_STATUS_LABELS; qChip = QUOTATION_STATUS_CHIP;
 
+  /**
+   * El PDF se arma apenas carga la pantalla, no al hacer clic.
+   *
+   * Why: `navigator.share()` y `window.open()` sólo funcionan mientras el
+   * navegador considera que está atendiendo un clic. Si se genera el PDF con
+   * `await` y después se abre WhatsApp, Chrome ya perdió esa activación y
+   * bloquea la ventana en silencio — el botón parecía no hacer nada.
+   */
+  private archivo?: File;
+  private preparando?: Promise<File | undefined>;
+
+  /** Enlace visible cuando el navegador bloqueó la ventana emergente. */
+  enlaceRespaldo = '';
+
   ngOnInit(): void {
     this.route.paramMap.pipe(
       switchMap((p) => this.quotations.getById(p.get('id') ?? '')),
@@ -58,14 +72,29 @@ export class QuotationDetailComponent implements OnInit {
       })
     ).subscribe(([client, vehicle]) => {
       this.client = client; this.vehicle = vehicle; this.loading = false;
+      if (this.isMechanic) { this.prepararArchivo(); }
     });
+  }
+
+  /** Deja el PDF listo en segundo plano. Si falla, el envío sigue con el texto. */
+  private prepararArchivo(): void {
+    const { quotation, client, vehicle } = this;
+    if (!quotation || !client || !vehicle) { return; }
+    this.preparando = this.delivery
+      .prepareFile(quotation, client, vehicle)
+      .then((f) => (this.archivo = f))
+      .catch(() => undefined);
   }
 
   get totalInWords(): string {
     return this.quotation ? amountInWords(this.quotation.total) : '';
   }
 
-  /** Margen sobre la venta. Sólo se pinta para el mecánico. */
+  /** Número al que se va a mandar, para que el mecánico pueda verificarlo. */
+  get numeroDestino(): string {
+    return this.client ? this.delivery.waNumber(this.client) : '';
+  }
+
   get marginPct(): number {
     if (!this.quotation?.subtotal) { return 0; }
     return Math.round((this.quotation.profit / this.quotation.subtotal) * 1000) / 10;
@@ -90,29 +119,64 @@ export class QuotationDetailComponent implements OnInit {
   }
 
   /**
-   * Un solo botón: arma el PDF, lo manda por WhatsApp con el mensaje y,
-   * si salió, deja la cotización marcada como enviada.
+   * Un solo botón. OJO: este método NO puede tener `await` antes de llamar a
+   * `share()` o `window.open()`, o el navegador bloquea la ventana. Todo lo
+   * lento ya se hizo en `prepararArchivo()`.
    */
-  async send(): Promise<void> {
-    if (!this.quotation || !this.client || !this.vehicle || this.sending) { return; }
-    this.sending = true;
-    try {
-      const result = await this.delivery.send(this.quotation, this.client, this.vehicle);
-      if (result.outcome === 'cancelled') {
-        this.notify.info(result.message);
-      } else {
-        this.notify.success(result.message);
-        if (this.quotation.status === 'draft') {
-          this.quotations.setStatus(this.quotation.id, 'sent').subscribe({
-            error: () => undefined,
-          });
-        }
-      }
-    } catch (e) {
-      this.notify.error((e as Error).message || 'No se pudo preparar la cotización.');
-    } finally {
-      this.sending = false;
+  send(): void {
+    const { quotation, client, vehicle } = this;
+    if (!quotation || !client || !vehicle || this.sending) { return; }
+    this.enlaceRespaldo = '';
+
+    // Teléfono: el selector del sistema manda el PDF adjunto.
+    if (this.delivery.canShareFile(this.archivo)) {
+      this.sending = true;
+      this.delivery
+        .shareFile(this.archivo as File, quotation, client, vehicle)
+        .then((r) => this.resolverEnvio(r))
+        .finally(() => (this.sending = false));
+      return;
     }
+
+    // Computadora: se abre WhatsApp de una vez, con el clic todavía vivo.
+    const resultado = this.delivery.openWhatsApp(quotation, client, vehicle);
+    this.resolverEnvio(resultado);
+
+    // Y después, ya sin prisa, se descarga el PDF para arrastrarlo al chat.
+    if (resultado.outcome !== 'blocked') {
+      this.delivery.downloadPdf(quotation, client, vehicle).catch(() => {
+        this.notify.error('No se pudo generar el PDF para descargar.');
+      });
+    }
+  }
+
+  private resolverEnvio(r: DeliveryResult): void {
+    if (r.outcome === 'cancelled') {
+      this.notify.info(r.message);
+      return;
+    }
+    if (r.outcome === 'blocked') {
+      // Un enlace en la página siempre se puede abrir; una ventana emergente no.
+      this.enlaceRespaldo = r.url ?? '';
+      this.notify.error('El navegador bloqueó la ventana. Usa el enlace que apareció abajo del botón.');
+      return;
+    }
+    this.notify.success(r.message);
+    this.marcarEnviada();
+  }
+
+  private marcarEnviada(): void {
+    if (this.quotation?.status !== 'draft') { return; }
+    this.quotations.setStatus(this.quotation.id, 'sent').subscribe({ error: () => undefined });
+  }
+
+  /** Se llama desde el enlace de respaldo: ya se abrió, se limpia el aviso. */
+  respaldoAbierto(): void {
+    this.enlaceRespaldo = '';
+    if (this.quotation && this.client && this.vehicle) {
+      this.delivery.downloadPdf(this.quotation, this.client, this.vehicle).catch(() => undefined);
+    }
+    this.marcarEnviada();
   }
 
   markAccepted(): void {

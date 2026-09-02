@@ -67,6 +67,16 @@
 
   .send-hint mat-icon { color: var(--tc-muted); }
 
+  /* Enlace de respaldo cuando el navegador bloquea la ventana emergente. */
+  .respaldo {
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-top: 12px; padding: 12px 14px; border-radius: 10px;
+    background: #fff8e1; border: 1px solid #ffe08a; font-size: 13px; line-height: 1.45;
+  }
+  .respaldo mat-icon { color: #b8860b; flex: 0 0 auto; font-size: 20px; width: 20px; height: 20px; }
+  .respaldo .t { font-weight: 700; margin-bottom: 2px; }
+  .respaldo a { color: var(--tc-blue); font-weight: 600; }
+
   /* Línea de tiempo de estados */
   .timeline { padding-left: 4px; }
   .tl-item { display: flex; gap: 14px; padding: 6px 0 18px; position: relative; }

@@ -4,6 +4,9 @@
 npm-debug.log
 yarn-error.log
 
+# Paquetes temporales que se usan para pasar archivos entre máquinas
+*.tgz
+
 # Compilados
 /dist
 /tmp
