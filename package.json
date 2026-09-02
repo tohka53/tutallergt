@@ -17,7 +17,8 @@
     "audit:dialogs": "node tools/dialog-audit.cjs",
     "audit:photos": "node tools/photos-e2e.cjs",
     "audit:pdf": "node tools/pdf-preview.cjs",
-    "audit:pdf:largo": "node tools/pdf-preview.cjs --largo"
+    "audit:pdf:largo": "node tools/pdf-preview.cjs --largo",
+    "audit:imagen": "node tools/imagen-preview.cjs"
   },
   "private": true,
   "dependencies": {
@@ -36,6 +37,7 @@
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
     "material-icons": "^1.13.14",
+    "pdfjs-dist": "^4.10.38",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"
@@ -51,6 +53,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "playwright": "^1.62.1",
     "typescript": "~5.5.2"
   }
 }

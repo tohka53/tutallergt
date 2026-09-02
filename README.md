@@ -110,37 +110,63 @@ con letra.
 > En la base, `vehiculos.modelo` es el nombre del modelo, `vehiculos.linea` el texto
 > largo que sale en el PDF y `vehiculos.anio` el año.
 
-El botón **Enviar cotización** del detalle hace dos cosas distintas según dónde estés:
+El botón **Enviar cotización** del detalle hace cosas distintas según dónde estés:
 
 - **Teléfono o tablet**: abre el selector del sistema con el **PDF ya adjunto** y el
   mensaje escrito. Eliges WhatsApp y sólo te queda darle enviar.
-- **Computadora**: abre **WhatsApp Web** con el mensaje escrito y descarga el PDF para que
-  lo arrastres al chat.
+- **Computadora**: copia la cotización **como imagen al portapapeles**, abre WhatsApp Web
+  con el mensaje escrito y descarga el PDF. En WhatsApp basta pegar con `⌘V` / `Ctrl+V`:
+  la imagen se manda junto con el mensaje.
+
+### Por qué imagen y no PDF en la computadora
+
+Un enlace `wa.me` sólo transporta **texto**; no existe forma de adjuntarle un archivo. Y
+el portapapeles del navegador admite muy pocos formatos: **PNG sí, PDF no**. Así que la
+imagen es la única manera de que la cotización viaje dentro del mismo mensaje sin salir
+del navegador. El PDF se descarga igual, por si se prefiere adjuntarlo a mano.
+
+La imagen se obtiene **rasterizando el PDF ya generado** (`QuotationImageService`, con
+pdf.js), no dibujando la cotización otra vez: así la imagen y el PDF no pueden
+desincronizarse nunca. El worker de pdf.js se copia a `assets/` desde `angular.json`, y la
+librería entra por importación dinámica en su propio chunk (~83 kB comprimido) que sólo se
+descarga en computadora y sólo al abrir el detalle de una cotización.
+
+Si de verdad hiciera falta que el mensaje **se enviara solo** con el PDF adjunto, el único
+camino es la **WhatsApp Business API** (cuenta de Meta Business, número verificado,
+plantillas aprobadas, un servidor y costo por conversación). No hay atajo desde el
+navegador.
 
 El mensaje dice *"Hola {nombre}, tu cotización para {marca} {línea} {año} (placa
 {placa})"*, con el número y el total.
 
-Tres cosas que hacen esto más delicado de lo que parece, y que ya están resueltas:
+Cuatro cosas que hacen esto más delicado de lo que parece, y que ya están resueltas.
+**Si vas a tocar `quotation-delivery.service.ts`, léelas primero**: cada una costó una
+vuelta de depuración.
 
-1. **WhatsApp no permite adjuntar un archivo desde un enlace `wa.me`**, sólo texto. La
-   única forma de que el PDF viaje en el mismo mensaje es el selector del sistema.
-2. **En la computadora no se usa el selector del sistema aunque el navegador lo tenga.**
+1. **En la computadora no se usa el selector del sistema aunque el navegador lo tenga.**
    Chrome de macOS y de Windows implementan `navigator.share` con archivos, pero abren el
-   panel de compartir del sistema operativo, donde WhatsApp casi nunca aparece como
-   destino. Por eso `esDispositivoTactil()` decide el camino: si no es táctil, WhatsApp
-   Web y punto.
-3. **El envío es síncrono a propósito.** `navigator.share()` y `window.open()` sólo
-   funcionan mientras el navegador cree que está atendiendo un clic. El PDF se prepara al
-   cargar la pantalla (`prepareFile`), no al hacer clic, para que entre el clic y la
-   llamada al navegador no haya ningún `await`. Si aun así el navegador bloquea la
-   ventana, aparece un enlace visible debajo del botón — un enlace de la página siempre se
-   puede abrir, una ventana emergente no.
+   panel de compartir del sistema operativo — y ahí **WhatsApp no aparece**. Por eso
+   `esDispositivoTactil()` decide el camino: si no es táctil, WhatsApp Web y punto. Ojo:
+   esa detección **no** protege del modo dispositivo de DevTools, que miente a propósito;
+   para probar el camino de escritorio hay que salirse de la emulación.
+2. **El orden en la computadora importa**: primero se copia la imagen y después se abre
+   WhatsApp. El navegador exige que el documento tenga el foco para escribir en el
+   portapapeles, y abrir la otra pestaña se lo quita.
+3. **Se abre con `<a target="_blank">`, no con `window.open`.** Una ventana emergente
+   puede quedar bloqueada en silencio: sin error y sin pestaña. Un clic sobre un enlace es
+   navegación normal. (Si alguien vuelve a `window.open`: nunca pasarle `'noopener'`, con
+   esa opción devuelve `null` aunque la ventana abra bien.)
+4. **El PDF y la imagen se preparan al cargar la pantalla**, no al hacer clic, para que
+   entre el clic y la llamada al navegador no haya ningún `await`. Y después de enviar, el
+   bloque con el enlace a WhatsApp queda **siempre** a la vista: los modos de fallar se ven
+   todos igual desde el código, así que un aviso condicionado a detectar el fallo no sirve.
 
 Para ver cómo queda el PDF sin levantar la app:
 
 ```bash
 npm run audit:pdf         # shots/cotizacion.pdf + .png
 npm run audit:pdf:largo   # 22 líneas y anticipo: comprueba el salto de página
+npm run audit:imagen      # shots/cotizacion-imagen.png: la que se pega en WhatsApp
 ```
 
 ---
@@ -257,6 +283,7 @@ npm run audit:visual                  # capturas de todas las pantallas
 npm run audit:dialogs                 # diálogos en móvil
 npm run audit:mobile                  # scroll, teclado y menú lateral
 npm run audit:pdf                     # el PDF de la cotización
+npm run audit:imagen                  # la imagen que se pega en WhatsApp
 ```
 
 Los scripts que recorren la app (`audit:visual`, `audit:dialogs`, `audit:mobile`,

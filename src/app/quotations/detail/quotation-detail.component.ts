@@ -9,6 +9,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { DeliveryResult, QuotationDeliveryService } from '../../core/services/quotation-delivery.service';
 import { QuotationPdfService } from '../../core/services/quotation-pdf.service';
+import { QuotationImageService } from '../../core/services/quotation-image.service';
 import { amountInWords } from '../../core/services/number-to-words.util';
 import { Client, Quotation, Vehicle } from '../../models';
 import { basePath } from '../../shared/nav.util';
@@ -33,6 +34,7 @@ export class QuotationDetailComponent implements OnInit {
   private notify = inject(NotificationService);
   private delivery = inject(QuotationDeliveryService);
   private pdf = inject(QuotationPdfService);
+  private imageService = inject(QuotationImageService);
   private dialog = inject(MatDialog);
 
   loading = true;
@@ -56,8 +58,22 @@ export class QuotationDetailComponent implements OnInit {
   private archivo?: File;
   private preparando?: Promise<File | undefined>;
 
-  /** Enlace visible cuando el navegador bloqueó la ventana emergente. */
+  /**
+   * La cotización como imagen PNG, sólo en computadora.
+   *
+   * Why: desde la computadora WhatsApp no acepta adjuntos por enlace, y el
+   * portapapeles del navegador no admite PDF. Una imagen sí se puede pegar en
+   * el chat, así que es la única forma de que la cotización viaje dentro del
+   * mensaje sin salir del navegador. En el teléfono no hace falta: ahí el
+   * selector del sistema adjunta el PDF de verdad.
+   */
+  private imagen?: Blob;
+
+  /** Enlace a WhatsApp que se deja a la vista después de enviar. */
   enlaceRespaldo = '';
+  /** true cuando la imagen quedó lista en el portapapeles. */
+  imagenCopiada = false;
+  atajoPegar = '';
 
   ngOnInit(): void {
     this.route.paramMap.pipe(
@@ -80,9 +96,20 @@ export class QuotationDetailComponent implements OnInit {
   private prepararArchivo(): void {
     const { quotation, client, vehicle } = this;
     if (!quotation || !client || !vehicle) { return; }
+    this.atajoPegar = this.delivery.atajoPegar();
+
     this.preparando = this.delivery
       .prepareFile(quotation, client, vehicle)
       .then((f) => (this.archivo = f))
+      .catch(() => undefined);
+
+    // La imagen sólo se prepara en computadora: es donde hace falta pegarla, y
+    // rasterizar el PDF trae una librería pesada que no vale la pena bajar en
+    // el teléfono, donde el selector del sistema ya adjunta el PDF.
+    if (!this.delivery.esEscritorio()) { return; }
+    this.preparando
+      .then(() => this.imageService.build(quotation, client, vehicle))
+      .then((b) => (this.imagen = b))
       .catch(() => undefined);
   }
 
@@ -127,6 +154,7 @@ export class QuotationDetailComponent implements OnInit {
     const { quotation, client, vehicle } = this;
     if (!quotation || !client || !vehicle || this.sending) { return; }
     this.enlaceRespaldo = '';
+    this.imagenCopiada = false;
 
     // Teléfono: el selector del sistema manda el PDF adjunto.
     if (this.delivery.canShareFile(this.archivo)) {
@@ -138,16 +166,48 @@ export class QuotationDetailComponent implements OnInit {
       return;
     }
 
-    // Computadora: se abre WhatsApp de una vez, con el clic todavía vivo.
+    // Computadora. El orden importa:
+    // 1) copiar la imagen mientras el documento AÚN tiene el foco — el
+    //    navegador exige foco para escribir en el portapapeles, y abrir la
+    //    pestaña de WhatsApp se lo quita;
+    // 2) abrir WhatsApp, con el clic todavía vivo;
+    // 3) descargar el PDF, que ya no tiene prisa.
+    const copiando = this.imagen
+      ? this.delivery.copyImage(this.imagen)
+      : Promise.resolve(false);
+
     const resultado = this.delivery.openWhatsApp(quotation, client, vehicle);
     this.resolverEnvio(resultado);
 
-    // Y después, ya sin prisa, se descarga el PDF para arrastrarlo al chat.
-    if (resultado.outcome !== 'blocked') {
-      this.delivery.downloadPdf(quotation, client, vehicle).catch(() => {
-        this.notify.error('No se pudo generar el PDF para descargar.');
-      });
+    copiando.then((ok) => (this.imagenCopiada = ok));
+
+    this.delivery.downloadPdf(quotation, client, vehicle).catch(() => {
+      this.notify.error('No se pudo generar el PDF para descargar.');
+    });
+  }
+
+  /** Botón de respaldo: vuelve a copiar la imagen al portapapeles. */
+  async copiarImagen(): Promise<void> {
+    const { quotation, client, vehicle } = this;
+    if (!quotation || !client || !vehicle) { return; }
+    try {
+      if (!this.imagen) {
+        this.imagen = await this.imageService.build(quotation, client, vehicle);
+      }
+      this.imagenCopiada = await this.delivery.copyImage(this.imagen);
+      if (this.imagenCopiada) {
+        this.notify.success(`Imagen copiada. Pega con ${this.atajoPegar} en WhatsApp.`);
+      } else {
+        this.notify.error('Tu navegador no dejó copiar la imagen. Usa el PDF descargado.');
+      }
+    } catch {
+      this.notify.error('No se pudo preparar la imagen.');
     }
+  }
+
+  /** ¿Tiene sentido ofrecer la imagen en este navegador? */
+  get puedeCopiarImagen(): boolean {
+    return this.delivery.esEscritorio() && this.delivery.canCopyImage();
   }
 
   /**

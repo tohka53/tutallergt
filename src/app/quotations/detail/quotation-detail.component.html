@@ -41,20 +41,28 @@
       <!-- Se muestra SIEMPRE después de enviar, no sólo cuando algo falla: si
            el navegador se tragó la pestaña, un aviso que sólo aparece "cuando
            detecta el error" tampoco aparecería. -->
-      <div class="respaldo" *ngIf="enlaceRespaldo">
-        <mat-icon>chat</mat-icon>
+      <div class="respaldo" [class.ok]="imagenCopiada" *ngIf="enlaceRespaldo">
+        <mat-icon>{{ imagenCopiada ? 'content_paste' : 'chat' }}</mat-icon>
         <div class="cuerpo">
-          <div class="t">¿No se abrió WhatsApp?</div>
-          <div class="d">
-            Si salió el panel de compartir del sistema y WhatsApp no estaba en la lista
-            (pasa en Mac), abre WhatsApp aquí y adjunta el PDF descargado.
+          <div class="t" *ngIf="imagenCopiada">
+            Cotización copiada. En WhatsApp pega con <strong>{{ atajoPegar }}</strong> y se manda
+            junto con el mensaje.
+          </div>
+          <div class="t" *ngIf="!imagenCopiada">¿No se abrió WhatsApp?</div>
+          <div class="d" *ngIf="!imagenCopiada">
+            WhatsApp no acepta archivos adjuntos desde un enlace. Copia la cotización como
+            imagen y pégala en el chat, o adjunta el PDF descargado.
           </div>
           <div class="acciones">
             <a mat-stroked-button [href]="enlaceRespaldo" target="_blank" rel="noopener noreferrer">
               <mat-icon>open_in_new</mat-icon> Abrir WhatsApp
             </a>
+            <button mat-stroked-button type="button" *ngIf="puedeCopiarImagen" (click)="copiarImagen()">
+              <mat-icon>content_copy</mat-icon>
+              {{ imagenCopiada ? 'Copiar otra vez' : 'Copiar como imagen' }}
+            </button>
             <button mat-stroked-button type="button" (click)="downloadPdf()">
-              <mat-icon>download</mat-icon> Descargar el PDF otra vez
+              <mat-icon>download</mat-icon> Descargar el PDF
             </button>
           </div>
         </div>

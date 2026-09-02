@@ -74,6 +74,10 @@
     margin-top: 12px; padding: 12px 14px; border-radius: 10px;
     background: #fff8e1; border: 1px solid #ffe08a; font-size: 13px; line-height: 1.45;
   }
+  /* Verde cuando la imagen ya quedó en el portapapeles: es un "listo, pega",
+     no un "algo salió mal". */
+  .respaldo.ok { background: #edf7ee; border-color: #bfe0c2; }
+  .respaldo.ok > mat-icon { color: #2e7d32; }
   .respaldo > mat-icon { color: #b8860b; flex: 0 0 auto; font-size: 20px; width: 20px; height: 20px; }
   .respaldo .cuerpo { flex: 1 1 auto; min-width: 0; }
   .respaldo .t { font-weight: 700; margin-bottom: 2px; }

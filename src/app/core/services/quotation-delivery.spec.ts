@@ -152,6 +152,38 @@ describe('QuotationDeliveryService', () => {
     });
   });
 
+  describe('imagen al portapapeles', () => {
+    // Es el único "adjunto" posible desde la computadora: WhatsApp no acepta
+    // archivos por enlace y el portapapeles del navegador no admite PDF.
+
+    it('dice que no se puede si el navegador no tiene ClipboardItem', () => {
+      const original = (window as unknown as Record<string, unknown>)['ClipboardItem'];
+      delete (window as unknown as Record<string, unknown>)['ClipboardItem'];
+      expect(service.canCopyImage()).toBe(false);
+      (window as unknown as Record<string, unknown>)['ClipboardItem'] = original;
+    });
+
+    it('devuelve false en vez de reventar cuando el portapapeles falla', async () => {
+      if (!service.canCopyImage()) { pending('este navegador no soporta el portapapeles'); return; }
+      spyOn(navigator.clipboard, 'write').and.returnValue(Promise.reject(new Error('sin foco')));
+      const ok = await service.copyImage(new Blob(['x'], { type: 'image/png' }));
+      expect(ok).toBe(false);
+    });
+
+    it('copia como image/png, que es lo que WhatsApp pega en el chat', async () => {
+      if (!service.canCopyImage()) { pending('este navegador no soporta el portapapeles'); return; }
+      const write = spyOn(navigator.clipboard, 'write').and.returnValue(Promise.resolve());
+      const ok = await service.copyImage(new Blob(['x'], { type: 'image/png' }));
+      expect(ok).toBe(true);
+      const item = write.calls.mostRecent().args[0][0];
+      expect(item.types).toContain('image/png');
+    });
+
+    it('el atajo se adapta al sistema', () => {
+      expect(service.atajoPegar()).toMatch(/⌘V|Ctrl\+V/);
+    });
+  });
+
   describe('compartir archivo', () => {
     it('no intenta compartir si el navegador no soporta archivos', () => {
       expect(service.canShareFile(undefined)).toBe(false);

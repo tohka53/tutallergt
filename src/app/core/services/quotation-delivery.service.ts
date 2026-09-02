@@ -114,6 +114,12 @@ export class QuotationDeliveryService {
    * el panel del sistema, donde WhatsApp no suele estar: ahí es mucho mejor
    * WhatsApp Web con el mensaje ya escrito.
    */
+  /** Computadora = todo lo que no sea teléfono ni tablet. */
+  esEscritorio(): boolean {
+    const nav = navigator as Navigator & { maxTouchPoints?: number };
+    return !esDispositivoTactil(nav.userAgent ?? '', nav.maxTouchPoints ?? 0);
+  }
+
   canShareFile(file: File | undefined): boolean {
     if (!file) { return false; }
     const nav = navigator as Navigator & {
@@ -199,5 +205,45 @@ export class QuotationDeliveryService {
   /** Descarga el PDF. Va después de abrir WhatsApp: esto sí puede esperar. */
   async downloadPdf(quotation: Quotation, client: Client, vehicle: Vehicle): Promise<void> {
     await this.pdf.download(quotation, client, vehicle);
+  }
+
+  // =========================================================================
+  // Imagen al portapapeles (el único adjunto posible desde la computadora)
+  // =========================================================================
+
+  /**
+   * ¿Se puede dejar la cotización en el portapapeles como imagen?
+   *
+   * El portapapeles del navegador sólo admite unos pocos formatos y **PDF no
+   * es uno**; PNG sí. Por eso el adjunto de escritorio es una imagen: WhatsApp
+   * Web acepta que se pegue y la manda dentro del mismo mensaje.
+   */
+  canCopyImage(): boolean {
+    return typeof ClipboardItem !== 'undefined'
+      && typeof navigator.clipboard?.write === 'function';
+  }
+
+  /**
+   * Copia la imagen. Devuelve false en vez de lanzar: que falle el
+   * portapapeles no debe romper el envío, que igual abre WhatsApp.
+   *
+   * Se llama ANTES de abrir WhatsApp: el navegador exige que el documento esté
+   * enfocado al momento de escribir, y abrir la otra pestaña le quita el foco.
+   */
+  copyImage(blob: Blob): Promise<boolean> {
+    if (!this.canCopyImage()) { return Promise.resolve(false); }
+    try {
+      return navigator.clipboard
+        .write([new ClipboardItem({ 'image/png': blob })])
+        .then(() => true)
+        .catch(() => false);
+    } catch {
+      return Promise.resolve(false);
+    }
+  }
+
+  /** "⌘V" en Mac, "Ctrl+V" en el resto. */
+  atajoPegar(): string {
+    return /Mac|iPhone|iPad/i.test(navigator.userAgent ?? '') ? '⌘V' : 'Ctrl+V';
   }
 }
