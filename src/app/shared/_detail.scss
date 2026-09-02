@@ -76,7 +76,8 @@
   }
   .respaldo > mat-icon { color: #b8860b; flex: 0 0 auto; font-size: 20px; width: 20px; height: 20px; }
   .respaldo .cuerpo { flex: 1 1 auto; min-width: 0; }
-  .respaldo .t { font-weight: 700; margin-bottom: 8px; }
+  .respaldo .t { font-weight: 700; margin-bottom: 2px; }
+  .respaldo .d { color: var(--tc-muted); margin-bottom: 10px; font-size: 12.5px; }
   .respaldo .acciones { display: flex; gap: 8px; flex-wrap: wrap; }
   .respaldo .acciones > * { margin: 0; }
 

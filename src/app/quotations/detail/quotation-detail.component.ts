@@ -150,26 +150,34 @@ export class QuotationDetailComponent implements OnInit {
     }
   }
 
+  /**
+   * El bloque con el enlace a WhatsApp se muestra SIEMPRE después de pulsar
+   * enviar, pase lo que pase.
+   *
+   * Why: los tres finales posibles se ven igual desde afuera cuando salen mal.
+   * En Mac el panel de compartir del sistema se abre pero NO tiene WhatsApp en
+   * la lista; una ventana emergente puede quedar bloqueada sin decir nada; y
+   * el navegador puede saltar a la app de WhatsApp dejando la pantalla igual.
+   * Un aviso que sólo aparece "cuando se detecta el fallo" no sirve, porque el
+   * fallo es justamente que nadie se entera. Con el enlace siempre presente
+   * hay dónde hacer clic sin depender de acertar el diagnóstico.
+   */
   private resolverEnvio(r: DeliveryResult): void {
-    if (r.outcome === 'cancelled') {
-      this.notify.info(r.message);
-      return;
-    }
+    this.enlaceRespaldo = r.url || this.urlWhatsApp();
+
+    if (r.outcome === 'cancelled') { this.notify.info(r.message); return; }
     if (r.outcome === 'blocked') {
-      this.enlaceRespaldo = r.url ?? '';
-      this.notify.error('El navegador bloqueó la ventana. Usa el enlace que apareció abajo del botón.');
+      this.notify.error('El navegador bloqueó la ventana. Usa el enlace de abajo.');
       return;
-    }
-    // En la computadora el enlace se deja SIEMPRE a la vista, no sólo cuando
-    // se detecta un bloqueo. Un aviso que sólo aparece "cuando falla" no sirve
-    // si el fallo es justamente que no se entera nadie: extensiones, bloqueo
-    // de ventanas o el navegador cambiando a la app de WhatsApp dejan al
-    // mecánico mirando un botón que aparentemente no hizo nada.
-    if (r.outcome === 'opened' && r.url) {
-      this.enlaceRespaldo = r.url;
     }
     this.notify.success(r.message);
     this.marcarEnviada();
+  }
+
+  private urlWhatsApp(): string {
+    const { quotation, client, vehicle } = this;
+    if (!quotation || !client || !vehicle) { return ''; }
+    return this.delivery.whatsappUrl(quotation, client, vehicle);
   }
 
   private marcarEnviada(): void {

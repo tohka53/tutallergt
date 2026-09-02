@@ -175,5 +175,22 @@ describe('QuotationDeliveryService', () => {
       expect(r.outcome).toBe('cancelled');
       expect(abrir).not.toHaveBeenCalled();
     });
+
+    it('al cancelar SÍ devuelve el enlace: en Mac el panel se cierra porque WhatsApp no está en la lista', async () => {
+      const file = new File([new Blob()], 'x.pdf', { type: 'application/pdf' });
+      const abort = new Error('cancel');
+      abort.name = 'AbortError';
+      (navigator as unknown as { share: unknown }).share = () => Promise.reject(abort);
+      const r = await service.shareFile(file, quotation, client, vehicle);
+      expect(r.url).toContain('wa.me/50231766741');
+    });
+
+    it('compartir con éxito también devuelve el enlace, por si no llegó a WhatsApp', async () => {
+      const file = new File([new Blob()], 'x.pdf', { type: 'application/pdf' });
+      (navigator as unknown as { share: unknown }).share = () => Promise.resolve();
+      const r = await service.shareFile(file, quotation, client, vehicle);
+      expect(r.outcome).toBe('shared');
+      expect(r.url).toContain('wa.me/50231766741');
+    });
   });
 });

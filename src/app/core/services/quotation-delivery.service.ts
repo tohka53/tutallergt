@@ -139,18 +139,22 @@ export class QuotationDeliveryService {
    */
   shareFile(file: File, quotation: Quotation, client: Client, vehicle: Vehicle): Promise<DeliveryResult> {
     const message = this.buildMessage(quotation, client, vehicle);
+    const url = this.whatsappUrl(quotation, client, vehicle);
     const nav = navigator as Navigator & { share: (data?: ShareData) => Promise<void> };
     return nav
       .share({ files: [file], text: message, title: quotation.number })
       .then<DeliveryResult>(() => ({
         outcome: 'shared',
         message: 'Cotización compartida con el PDF adjunto.',
+        url,
       }))
       .catch<DeliveryResult>((e: Error) => {
         // AbortError = cerró el selector. No es un fallo y no se abre WhatsApp
-        // por detrás, porque no era lo que quería.
+        // por detrás, porque no era lo que quería. Pero SÍ se devuelve la url:
+        // puede haberlo cerrado justamente porque WhatsApp no aparecía en la
+        // lista, como pasa en el panel de compartir de macOS.
         if (e?.name === 'AbortError') {
-          return { outcome: 'cancelled', message: 'Envío cancelado.' };
+          return { outcome: 'cancelled', message: 'Se cerró el panel de compartir.', url };
         }
         return this.openWhatsApp(quotation, client, vehicle);
       });
